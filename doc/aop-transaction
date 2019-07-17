@@ -1,0 +1,14 @@
+BeanFactoryTransactionAttributeSourceAdvisor
+adviceBeanName=org.springframework.transaction.interceptor.TransactionInterceptor#0
+
+InfrastructureAdvisorAutoProxyCreator
+postProcessAfterInitialization
+wrapIfNecessary
+//Create proxy if we have advice.
+SpringTransactionAnnotationParser
+
+
+RoutingStatementHandler
+
+
+

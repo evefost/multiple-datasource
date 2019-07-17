@@ -1,0 +1,22 @@
+
+@startuml
+业代码->MapperProxy:invoke(proxy,method,args)
+MapperProxy->MapperProxy: cachedMapperMethod(method)\n创建MapperMethod 并缓存
+MapperProxy->MapperMethod: execute(sqlSession, args)\n开始执行，判断操作类型(增删改查)
+MapperMethod->MapperMethod: rowCountResult(rowCount)\n判断返回给
+MapperMethod->SqlSessionTemplate:据类型各种增删改查
+SqlSessionTemplate->SqlSessionInterceptor:invoke(proxy,method,args)，\n开去吧操作\n完后如果有事务则提交事务
+SqlSessionInterceptor->SqlSessionInterceptor:getSqlSession()获取session
+SqlSessionInterceptor->DefaultSqlSession:method.invoke() \nPlugin 代理Executor接口，
+DefaultSqlSession->Configuration: getMappedStatement()\n获取sql声明MappedStatement
+DefaultSqlSession->CachingExecutor: executor增删改查操作
+CachingExecutor->SimpleExecutor:
+SimpleExecutor->SimpleExecutor:prepareStatement()\n在这里会获取数据库连接,\n创建Statement
+SimpleExecutor->SpringManagedTransaction:getConnection() 内部维护datasource
+SimpleExecutor->RoutingStatementHandler: 增删改查操作
+RoutingStatementHandler->PreparedStatementHandler:prepare()\n开始创建Statement
+PreparedStatementHandler->PreparedStatementHandler:instantiateStatement()\n 利用connection 生成Statement
+PreparedStatementHandler->SimpleExecutor:返回statement
+SimpleExecutor->StatementHandler:增、删、改、查，最终由底层jdbc执行
+业代码<-StatementHandler:把结果还回给业务
+@enduml

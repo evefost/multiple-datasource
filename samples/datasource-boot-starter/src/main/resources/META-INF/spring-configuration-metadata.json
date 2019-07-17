@@ -1,0 +1,99 @@
+{
+  "hints": [
+    {
+      "name": "datasource.master.ds0-id",
+      "value": ""
+    },
+    {
+      "name": "datasource.master.ds0-url",
+      "value": ""
+    },
+    {
+      "name": "datasource.master.ds0-username",
+      "value": ""
+    },
+    {
+      "name": "datasource.master.ds0-password",
+      "value": ""
+    },
+    {
+      "name": "datasource.slavers",
+      "value": ""
+    }
+  ],
+  "groups": [
+    {
+      "name": "datasource config",
+      "type": "com.xxx.starter.DatasourceProperties",
+      "sourceType": "com.xxx.starter.DatasourceProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "datasource.master",
+      "type": "java.util.Map",
+      "sourceType": "com.xxx.starter.DatasourceProperties",
+      "description": "master"
+    },
+    {
+      "name": "datasource.master.ds0-id",
+      "type": "java.lang.String",
+      "sourceType": "com.xxx.starter.DatasourceProperties",
+      "description": "master"
+    },
+    {
+      "name": "datasource.master.ds0-url",
+      "type": "java.lang.String",
+      "sourceType": "com.xxx.starter.DatasourceProperties",
+      "description": "master"
+    },
+    {
+      "name": "datasource.master.ds0-username",
+      "type": "java.lang.String",
+      "sourceType": "com.xxx.starter.DatasourceProperties",
+      "description": "master"
+    },
+    {
+      "name": "datasource.master.ds0-password",
+      "type": "java.lang.String",
+      "sourceType": "com.xxx.starter.DatasourceProperties",
+      "description": "master"
+    },
+    {
+      "name": "datasource.slaver",
+      "type": "java.util.Map",
+      "sourceType": "com.xxx.starter.DatasourceProperties",
+      "description": "master"
+    },
+    {
+      "name": "datasource.slaver.ds0-masterId",
+      "type": "java.long.String",
+      "sourceType": "com.xxx.starter.DatasourceProperties",
+      "description": "master"
+    },
+    {
+      "name": "datasource.slaver.ds0-id",
+      "type": "java.lang.String",
+      "sourceType": "com.xxx.starter.DatasourceProperties",
+      "description": "master"
+    },
+    {
+      "name": "datasource.slaver.ds0-url",
+      "type": "java.lang.String",
+      "sourceType": "com.xxx.starter.DatasourceProperties",
+      "description": "master"
+    },
+    {
+      "name": "datasource.slaver.ds0-username",
+      "type": "java.lang.String",
+      "sourceType": "com.xxx.starter.DatasourceProperties",
+      "description": "master"
+    },
+    {
+      "name": "datasource.slaver.ds0-password",
+      "type": "java.lang.String",
+      "sourceType": "com.xxx.starter.DatasourceProperties",
+      "description": "master"
+    }
+  ]
+}

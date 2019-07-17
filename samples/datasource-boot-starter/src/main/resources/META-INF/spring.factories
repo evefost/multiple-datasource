@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.xxx.starter.DatasourceAutoConfiguration,\
+com.xxx.starter.MybatisAutoConfiguration

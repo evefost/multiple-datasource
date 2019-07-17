@@ -1,0 +1,9 @@
+
+@startuml
+MapperScannerConfigurer -> MapperScannerConfigurer: postProcessBeanDefinitionRegistry
+MapperScannerConfigurer -> ClassPathMapperScanner: scan(basePackages)
+ClassPathMapperScanner -> ClassPathMapperScanner: doScan(basePackages)
+ClassPathMapperScanner -> ClassPathMapperScanner: processBeanDefinitions(beanDefinitions)
+
+MapperFactoryBean->MapperFactoryBean
+@enduml

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   		http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+	   		http://www.springframework.org/schema/tx
+            http://www.springframework.org/schema/tx/spring-tx-4.3.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+  <context:component-scan base-package="com.eve.common.service"/>
+  <bean name="datasourceResolver" class="com.eve.mvc.datasource.controller.ActuallyDatasourceResolver"/>
+  <bean class="com.eve.multiple.config.DatasourceConfig">
+    <property name="dataSourceResolver" ref="datasourceResolver"/>
+  </bean>
+
+  <!--开启事务-->
+  <tx:annotation-driven  />
+
+  <bean name="dataSource" class="com.eve.multiple.datasource.MultipleDataSource"/>
+
+  <bean name="sqlSessionFactory" class="com.eve.multiple.DynamicSessionFactoryBean">
+    <property name="dataSource" ref="dataSource"/>
+    <property name="configLocation" value="classpath:spring-mybatis-config.xml"/>
+
+  </bean>
+  <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+    <property name="basePackage" value="com.eve.common.dao"/>
+  </bean>
+  <!--  <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+      <property name="locations">
+        <list>
+          <value>classpath:application.properties</value>
+        </list>
+      </property>
+    </bean>-->
+
+</beans>

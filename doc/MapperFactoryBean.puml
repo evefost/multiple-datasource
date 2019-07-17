@@ -1,0 +1,9 @@
+
+@startuml
+ApplicationContext->MapperFactoryBean:getObject()
+SqlSessionTemplate->SqlSessionTemplate: getMapper(type) type mapper interface
+SqlSessionTemplate->Configuration: getMapper(type, this)
+Configuration->MapperRegistry: getMapper(type, sqlSession) \r查测是否dao 与mapper xml是否有绑定关系，如果否抛出异常
+MapperRegistry->MapperProxyFactory:newInstance(sqlSession) 创建传入接口的代理实例
+MapperProxyFactory-> MapperProxyFactory: newInstance(mapperProxy) 把信息封装成MapperProxy 再创建代理\rMapperProxy 实现了InvocationHandler
+@enduml
