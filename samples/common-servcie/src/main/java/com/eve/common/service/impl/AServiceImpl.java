@@ -57,8 +57,10 @@ public class AServiceImpl implements AService {
         user.setAge(22);
         user.setName("老王");
         save(user);
-        bService.save(user);
+//        bService.save(user);
+        bService.queryById(1);
         cService.queryById(1);
+//        cService.save(user);
 //        if (true) {
 //            throw new RuntimeException("xxxx");
 //        }

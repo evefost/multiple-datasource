@@ -1,19 +1,17 @@
 
 @startuml
-Controller->ServiceProxy:调用serviceProxy
-ServiceProxy->TransactionManager:开启事务
-TransactionManager->TransactionInterceptor
-TransactionInterceptor->RouteContextInterceptor: 数据源由路Context拦截器
-RouteContextInterceptor->RouteContextInterceptor: 保存是否有事务信
-RouteContextInterceptor->Service:开始业务处理
+Controller->ServiceInterceptor:进入serviceProxy 拦截器
+ServiceInterceptor->ServiceInterceptor:设置数据源context
+ServiceInterceptor->TransactionInterceptor:进入事务拦截器
+TransactionInterceptor->TransactionInterceptor:设置数据源context
+TransactionManager<-TransactionInterceptor
+TransactionManager->TransactionManager:开启事务
+TransactionManager->Service:开始业务处理
 Service->Service1:调用Service1
-Service1->Dao1:据routeContext做路由处理
+Service1->Dao1:据数据源context做路由处理
 Dao1->Dao1:访问数据
-Dao1->Service1:返回数据
-Service1->Service:
-Service->RouteContextInterceptor:清除context数据，并返回
-RouteContextInterceptor->TransactionInterceptor:
-TransactionInterceptor->TransactionManager:业务处理完成
-TransactionManager->ServiceProxy:提交事务
-ServiceProxy->Controller:返回结果
+Dao1->Service:返回数据
+Service->TransactionManager:处理完业务
+TransactionManager->TransactionManager:提交事务
+TransactionManager->Controller:返回结果
 @enduml
