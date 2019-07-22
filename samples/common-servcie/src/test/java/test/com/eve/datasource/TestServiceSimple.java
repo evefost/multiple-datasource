@@ -1,11 +1,10 @@
-
+package test.com.eve.datasource;
 
 import com.eve.common.entity.User;
 import com.eve.common.service.AService;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * Created by xieyang on 19/7/4.
@@ -16,7 +15,7 @@ public class TestServiceSimple {
     @Test
     public void testDefaultQuery(){
         String[]  configurLocations = {"spring-application.xml"};
-        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(configurLocations) ;
+        ConfigurationApplicationContext context = new ConfigurationApplicationContext(configurLocations);
         AService aService = context.getBean(AService.class);
         User user = aService.queryById(2);
         System.out.println("xxxxxx");
@@ -25,7 +24,7 @@ public class TestServiceSimple {
     @Test
     public void testDefaultUpdate() {
         String[] configurLocations = {"spring-application.xml"};
-        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(configurLocations);
+        ConfigurationApplicationContext context = new ConfigurationApplicationContext(configurLocations);
         AService aService = context.getBean(AService.class);
         User user = new User();
         user.setAge(111);
@@ -38,7 +37,7 @@ public class TestServiceSimple {
     @Test
     public void testMutipleDaoQuery(){
         String[]  configurLocations = {"spring-application.xml"};
-        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(configurLocations) ;
+        ConfigurationApplicationContext context = new ConfigurationApplicationContext(configurLocations);
         AService aService = context.getBean(AService.class);
         aService.queryByIdMutipleDao(2);
 
@@ -49,7 +48,7 @@ public class TestServiceSimple {
     @Test
     public void testMutipleDaoUpdate(){
         String[]  configurLocations = {"spring-application.xml"};
-        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(configurLocations) ;
+        ConfigurationApplicationContext context = new ConfigurationApplicationContext(configurLocations);
         AService aService = context.getBean(AService.class);
         User user = new User();
         user.setAge(111);
@@ -64,7 +63,7 @@ public class TestServiceSimple {
     @Test
     public void testMutipleOperate() {
         String[] configurLocations = {"spring-application.xml"};
-        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(configurLocations);
+        ConfigurationApplicationContext context = new ConfigurationApplicationContext(configurLocations);
         AService aService = context.getBean(AService.class);
         aService.mutipleOperate();
     }
@@ -73,7 +72,7 @@ public class TestServiceSimple {
     @Test
     public void testMutipleOperate2() {
         String[] configurLocations = {"spring-application.xml"};
-        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(configurLocations);
+        ConfigurationApplicationContext context = new ConfigurationApplicationContext(configurLocations);
         AService aService = context.getBean(AService.class);
         aService.mutipleOperate2();
     }

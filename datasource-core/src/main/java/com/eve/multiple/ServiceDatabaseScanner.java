@@ -57,7 +57,11 @@ public class ServiceDatabaseScanner {
             Class<?>[] interfaces = beanClass.getInterfaces();
             for (Class<?> ifc : interfaces) {
                 if (ifc.isAnnotationPresent(Database.class)) {
-                    throw new RuntimeException(beanClass.getName() + " and " + ifc.getName() + " bind with database");
+                    Database clzDb = beanClass.getAnnotation(Database.class);
+                    Database ifcDb = ifc.getAnnotation(Database.class);
+                    if (!clzDb.value().equals(ifcDb.value())) {
+                        throw new RuntimeException(beanClass.getName() + " bind database[" + clzDb.value() + "] and " + ifc.getName() + "  bind  databases[" + ifcDb.value() + "] are different");
+                    }
                 }
             }
             annotation = beanClass.getAnnotation(Database.class);
@@ -79,7 +83,7 @@ public class ServiceDatabaseScanner {
         if (classDatabaseId != null) {
             DataSourceProperties dps = sourceProperties.getDatasourceProperties().get(classDatabaseId);
             if (dps == null) {
-                throw new RuntimeException(clz.getName() + "bind databaseId:" + classDatabaseId + "not exist");
+                throw new RuntimeException(clz.getName() + " bind databaseId:" + classDatabaseId + " is not exist");
             }
         }
         Method[] methods = clz.getDeclaredMethods();

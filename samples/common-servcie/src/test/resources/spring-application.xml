@@ -9,8 +9,10 @@
 
 
   <context:component-scan base-package="com.eve.common.service"/>
-  <bean class="com.eve.multiple.config.DatasourceConfig"/>
-  <bean class="com.eve.multiple.ServiceProxyProcessor"/>
+  <bean class="com.eve.multiple.config.DatasourceConfig">
+    <property name="dataSourceResolver" ref="datasourceResolver"/>
+  </bean>
+  <bean id="datasourceResolver" class="test.com.eve.datasource.ActuallyDatasourceResolver"/>
 
   <!--开启事务-->
   <tx:annotation-driven  />

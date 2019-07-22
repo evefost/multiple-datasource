@@ -54,14 +54,13 @@ public class AServiceImpl implements AService {
     @Override
     public User queryById(Integer id) {
         User user = aMapper.queryById(id);
-//        User user = new User();
-//        user.setAge(22);
-//        user.setName("老王");
-//        save(user);
-//        bService.save(user);
-//        cService.queryById(1);
-//        if(true){
-//            throw  new RuntimeException("xxxx");
+        user.setAge(22);
+        user.setName("老王");
+        save(user);
+        bService.save(user);
+        cService.queryById(1);
+//        if (true) {
+//            throw new RuntimeException("xxxx");
 //        }
         return user;
     }

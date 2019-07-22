@@ -1,4 +1,4 @@
-
+package test.com.eve.datasource;
 
 import com.eve.common.entity.User;
 import com.eve.common.service.AService;
@@ -16,7 +16,7 @@ public class TestServiceComplex {
     @Test
     public void testDefaultQuery(){
         String[]  configurLocations = {"spring-beans.xml"};
-        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(configurLocations) ;
+        ClassPathXmlApplicationContext context = new ConfigurationApplicationContext(configurLocations);
         AService aService = context.getBean(AService.class);
         User user = aService.queryById(2);
         System.out.println("xxxxxx");

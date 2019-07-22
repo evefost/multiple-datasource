@@ -88,7 +88,7 @@ public class ExecutorInterceptor implements Interceptor {
                 RouteContextManager.setCurrentDatabaseId(masterId,false);
                 if(isSelect){
                     if (logger.isDebugEnabled()) {
-                        logger.debug("no transaction query，but had update before,so switch to master:[{}]", masterId);
+                        logger.debug("no transaction query，but had update before,so switch to master[{}]", masterId);
                     }
                     tip = "no transaction,but had update before";
                 } else {
