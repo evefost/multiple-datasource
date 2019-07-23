@@ -1,6 +1,5 @@
 package com.eve.multiple;
 
-import com.eve.multiple.annotation.Database;
 import com.eve.multiple.interceptor.ExecutorInterceptor;
 import org.apache.ibatis.builder.xml.XMLConfigBuilder;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
@@ -11,7 +10,6 @@ import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
 import org.apache.ibatis.mapping.Environment;
-import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.reflection.factory.ObjectFactory;
 import org.apache.ibatis.reflection.wrapper.ObjectWrapperFactory;
@@ -30,10 +28,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.Properties;
 
 import static org.springframework.util.Assert.notNull;
@@ -365,38 +360,10 @@ public class DynamicSessionFactoryBean extends SqlSessionFactoryBean {
                 "Property 'configuration' and 'configLocation' can not specified with together");
         this.sqlSessionFactory = buildSqlSessionFactory();
         configuration.addInterceptor(new ExecutorInterceptor());
-        processDatabaseIds();
+        BindDatabaseScanner.scanMapperDatabaseIds(configuration);
     }
 
 
-    private void processDatabaseIds() throws IllegalAccessException, NoSuchFieldException {
-        Collection<Class<?>> mappers = configuration.getMapperRegistry().getMappers();
-        Field databaseField = MappedStatement.class.getDeclaredField("databaseId");
-        databaseField.setAccessible(true);
-        for (Class clzz : mappers) {
-            String clzDatabaseId = null;
-            if (clzz.isAnnotationPresent(Database.class)) {
-                clzDatabaseId = ((Database) clzz.getAnnotation(Database.class)).value();
-            }
-            Method[] methods = clzz.getMethods();
-            for (Method m : methods) {
-                String id = clzz.getName() + "." + m.getName();
-                MappedStatement stm = configuration.getMappedStatement(id);
-                if (stm == null) {
-                    continue;
-                }
-                if (clzDatabaseId != null) {
-                    databaseField.set(stm, clzDatabaseId);
-                }
-                if (m.isAnnotationPresent(Database.class)) {
-                    String databaseId = m.getAnnotation(Database.class).value();
-                    databaseField.set(stm, databaseId);
-                }
-
-            }
-
-        }
-    }
 
     /**
      * Build a {@code SqlSessionFactory} instance.

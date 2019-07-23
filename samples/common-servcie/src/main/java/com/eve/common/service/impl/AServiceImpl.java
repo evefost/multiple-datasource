@@ -50,7 +50,7 @@ public class AServiceImpl implements AService {
         aMapper.insertUser(user);
     }
 
-//    @Transactional
+    @Transactional
     @Override
     public User queryById(Integer id) {
         User user = aMapper.queryById(id);

@@ -16,7 +16,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>1.5.10.RELEASE</version>
+            <version>1.5.16.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>com.eve</groupId>

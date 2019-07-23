@@ -25,7 +25,7 @@ public class DataSourcePropertiesParser {
     private ConfigurableEnvironment environment;
 
 
-    private Map<String, DataSourceProperties> datasourceProperties;
+    private Map<String/*databaseId*/, DataSourceProperties> datasourceProperties;
 
     private String defaultDatabaseId;
 

@@ -1,6 +1,6 @@
 
 @startuml
-Controller->ServiceInterceptor:进入serviceProxy 拦截器
+Client->ServiceInterceptor:进入serviceProxy 拦截器
 ServiceInterceptor->ServiceInterceptor:设置数据源context
 ServiceInterceptor->TransactionInterceptor:进入事务拦截器
 TransactionInterceptor->TransactionInterceptor:设置数据源context
@@ -13,5 +13,5 @@ Dao1->Dao1:访问数据
 Dao1->Service:返回数据
 Service->TransactionManager:处理完业务
 TransactionManager->TransactionManager:提交事务
-TransactionManager->Controller:返回结果
+TransactionManager->Client:返回结果
 @enduml

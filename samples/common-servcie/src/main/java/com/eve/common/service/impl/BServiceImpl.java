@@ -31,6 +31,7 @@ public class BServiceImpl implements BService {
 
     }
 
+    @Transactional
     @Override
     public User queryById(Integer id) {
         return bMapper.queryById(id);

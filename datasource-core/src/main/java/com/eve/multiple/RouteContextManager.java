@@ -1,7 +1,6 @@
 package com.eve.multiple;
 
 import com.eve.multiple.config.DataSourceProperties;
-import com.eve.multiple.config.DatasourceConfig;
 import com.eve.multiple.config.MultipleSourceProperties;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.slf4j.Logger;
@@ -19,7 +18,7 @@ public class RouteContextManager {
 
     private static Logger logger = LoggerFactory.getLogger(RouteContextManager.class);
 
-    private static Map<Method, DatasourceConfig.MethodMapping> methodDatabaseMapping;
+    private static Map<Method,BindDatabaseScanner.MethodMapping> methodDatabaseMapping;
 
     private static MultipleSourceProperties multipleSourceProperties;
 
@@ -79,7 +78,7 @@ public class RouteContextManager {
     }
 
     public static String getDatabaseId(Method method) {
-        DatasourceConfig.MethodMapping methodMapping = methodDatabaseMapping.get(method);
+        BindDatabaseScanner.MethodMapping methodMapping = methodDatabaseMapping.get(method);
         if (methodMapping == null) {
             return null;
         }
@@ -87,7 +86,7 @@ public class RouteContextManager {
     }
 
 
-    public static void setMethodDatabaseMapping(Map<Method, DatasourceConfig.MethodMapping> mapping) {
+    public static void setMethodDatabaseMapping(Map<Method, BindDatabaseScanner.MethodMapping> mapping) {
         methodDatabaseMapping = mapping;
     }
 

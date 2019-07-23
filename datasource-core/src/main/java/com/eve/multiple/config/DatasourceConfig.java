@@ -1,8 +1,8 @@
 package com.eve.multiple.config;
 
+import com.eve.multiple.BindDatabaseScanner;
 import com.eve.multiple.DataSourceResolver;
 import com.eve.multiple.RouteContextManager;
-import com.eve.multiple.ServiceDatabaseScanner;
 import com.eve.multiple.ServiceProxyProcessor;
 import com.eve.multiple.datasource.MultipleDataSource;
 import com.eve.multiple.interceptor.PreTransactionInterceptor;
@@ -23,7 +23,6 @@ import org.springframework.transaction.interceptor.BeanFactoryTransactionAttribu
 import org.springframework.transaction.interceptor.TransactionAttributeSource;
 
 import javax.sql.DataSource;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -66,6 +65,7 @@ public class DatasourceConfig implements SmartInitializingSingleton, Environment
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
+
         //代理service
         GenericBeanDefinition serviceProxyBD = new GenericBeanDefinition();
         serviceProxyBD.setBeanClass(ServiceProxyProcessor.class);
@@ -85,11 +85,15 @@ public class DatasourceConfig implements SmartInitializingSingleton, Environment
         sourceAdvisor.setAdvice(interceptor);
 
         dataSource = beanFactory.getBean(MultipleDataSource.class);
+        initDatasource();
     }
 
 
     private void initDatasource() {
-        Map<String, javax.sql.DataSource> dataSources = new HashMap<>(sourceProperties.getDatasourceProperties().size());
+        if (logger.isDebugEnabled()) {
+            logger.debug("initDatasource");
+        }
+        Map<String, DataSource> dataSources = new HashMap<>(sourceProperties.getDatasourceProperties().size());
         Map<String, DataSourceProperties> datasourceProperties = sourceProperties.getDatasourceProperties();
         for (Map.Entry<String, DataSourceProperties> entry : datasourceProperties.entrySet()) {
             String dataId = entry.getKey();
@@ -97,7 +101,9 @@ public class DatasourceConfig implements SmartInitializingSingleton, Environment
             DataSource dataSource = dataSourceResolver.createDataSource(value);
             dataSources.put(dataId, dataSource);
         }
-        this.dataSource.setDataSources(dataSources);
+        dataSource.setDataSources(dataSources);
+        registryPlatformTransactionManager();
+
     }
 
     private void loadDatasourceProperties() {
@@ -130,36 +136,15 @@ public class DatasourceConfig implements SmartInitializingSingleton, Environment
     @Override
     public void afterSingletonsInstantiated() {
         try {
-            ServiceDatabaseScanner scanner = new ServiceDatabaseScanner(registry, sourceProperties);
+
+            BindDatabaseScanner scanner = new BindDatabaseScanner(registry, sourceProperties);
             scanner.scanServiceBindDatabaseIds();
-        } catch (ClassNotFoundException e) {
-            logger.error("scanServiceBindDatabaseIds failure ",e);
+        } catch (Exception e) {
+            logger.error("scanServiceBindDatabaseIds failure ", e);
         }
-        initDatasource();
-        registryPlatformTransactionManager();
+
     }
 
 
-    public static class MethodMapping {
 
-        private Method method;
-
-        private String databaseId;
-
-        public Method getMethod() {
-            return method;
-        }
-
-        public void setMethod(Method method) {
-            this.method = method;
-        }
-
-        public String getDatabaseId() {
-            return databaseId;
-        }
-
-        public void setDatabaseId(String databaseId) {
-            this.databaseId = databaseId;
-        }
-    }
 }
