@@ -5,6 +5,7 @@ import com.eve.common.service.AService;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import test.com.eve.datasource.extend.ConfigurationApplicationContext;
 
 /**
  * Created by xieyang on 19/7/4.

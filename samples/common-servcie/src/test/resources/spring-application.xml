@@ -12,8 +12,9 @@
   <bean class="com.eve.multiple.config.DatasourceConfig">
     <property name="dataSourceResolver" ref="datasourceResolver"/>
   </bean>
-  <bean id="datasourceResolver" class="test.com.eve.datasource.ActuallyDatasourceResolver"/>
+  <bean id="datasourceResolver" class="test.com.eve.datasource.extend.ActuallyDatasourceResolver"/>
 
+  <bean id="customerPropertiesParser" class="test.com.eve.datasource.extend.CustomerDatasourcePropertiesParser"/>
   <!--开启事务-->
   <tx:annotation-driven  />
 

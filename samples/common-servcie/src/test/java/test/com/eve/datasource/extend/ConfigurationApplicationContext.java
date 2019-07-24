@@ -1,4 +1,4 @@
-package test.com.eve.datasource;
+package test.com.eve.datasource.extend;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.support.ResourcePropertySource;

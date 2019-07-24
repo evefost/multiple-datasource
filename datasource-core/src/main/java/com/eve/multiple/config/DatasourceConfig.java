@@ -47,6 +47,8 @@ public class DatasourceConfig implements SmartInitializingSingleton, Environment
 
     private DataSourceResolver dataSourceResolver;
 
+    private DataSourceBasePropertiesParser propertiesParser;
+
     public void setDataSourceResolver(DataSourceResolver dataSourceResolver) {
         this.dataSourceResolver = dataSourceResolver;
     }
@@ -54,7 +56,6 @@ public class DatasourceConfig implements SmartInitializingSingleton, Environment
     @Override
     public void setEnvironment(Environment environment) {
         this.environment = (ConfigurableEnvironment) environment;
-        loadDatasourceProperties();
     }
 
     @Override
@@ -85,9 +86,32 @@ public class DatasourceConfig implements SmartInitializingSingleton, Environment
         sourceAdvisor.setAdvice(interceptor);
 
         dataSource = beanFactory.getBean(MultipleDataSource.class);
+        try {
+            propertiesParser = beanFactory.getBean(DataSourceBasePropertiesParser.class);
+            propertiesParser.setEnvironment(environment);
+        }catch (BeansException ex){
+           logger.info("DataSourceBasePropertiesParser instance not reject");
+        }
+        if(propertiesParser== null){
+            propertiesParser  = new DefaultDataSourcePropertiesParser(environment);
+        }
+        loadDatasourceProperties();
         initDatasource();
     }
 
+    private void loadDatasourceProperties() {
+        logger.info("loadDatasourceProperties ");
+        try {
+            propertiesParser.parse();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        sourceProperties.setDatasourceProperties(propertiesParser.getDatasourceProperties());
+        sourceProperties.setDefaultDatabaseId(propertiesParser.getDefaultDatabaseId());
+        RouteContextManager.setMultipleSourceProperties(sourceProperties);
+    }
 
     private void initDatasource() {
         if (logger.isDebugEnabled()) {
@@ -106,14 +130,7 @@ public class DatasourceConfig implements SmartInitializingSingleton, Environment
 
     }
 
-    private void loadDatasourceProperties() {
-        logger.info("loadDatasourceProperties ");
-        DataSourcePropertiesParser dataSourcePropertiesParser = new DataSourcePropertiesParser(environment);
-        dataSourcePropertiesParser.parse();
-        sourceProperties.setDatasourceProperties(dataSourcePropertiesParser.getDatasourceProperties());
-        sourceProperties.setDefaultDatabaseId(dataSourcePropertiesParser.getDefaultDatabaseId());
-        RouteContextManager.setMultipleSourceProperties(sourceProperties);
-    }
+
 
 
     private void registryPlatformTransactionManager() {

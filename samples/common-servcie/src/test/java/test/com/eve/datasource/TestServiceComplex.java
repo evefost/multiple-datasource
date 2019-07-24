@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import test.com.eve.datasource.extend.ConfigurationApplicationContext;
 
 /**
  * Created by xieyang on 19/7/4.

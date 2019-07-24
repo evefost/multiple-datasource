@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * @author xieyang
  */
-public class DataSourcePropertiesParser {
+public abstract class DataSourceBasePropertiesParser<DP extends DataSourceProperties> {
 
     private final String ID = "id";
 
@@ -25,15 +25,25 @@ public class DataSourcePropertiesParser {
     private ConfigurableEnvironment environment;
 
 
-    private Map<String/*databaseId*/, DataSourceProperties> datasourceProperties;
+    /**
+     * key:databaseId
+     */
+    protected Map<String, DP> datasourceProperties;
 
-    private String defaultDatabaseId;
+    protected String defaultDatabaseId;
 
-    private Map<String, String> properties;
+    protected Map<String, String> properties;
 
-    public DataSourcePropertiesParser(ConfigurableEnvironment environment) {
+    public DataSourceBasePropertiesParser() {
+    }
+
+    public DataSourceBasePropertiesParser(ConfigurableEnvironment environment) {
         this.environment = environment;
-        properties = findProperties();
+
+    }
+
+    public void setEnvironment(ConfigurableEnvironment environment) {
+        this.environment = environment;
     }
 
     private Map<String, String> findProperties() {
@@ -58,25 +68,25 @@ public class DataSourcePropertiesParser {
 
     }
 
-    public void parse() {
-
-        Map<String, String> masterKey = new HashMap<>(10);
-        Map<String, String> slaverKey = new HashMap<>(10);
+    public void parse() throws InstantiationException, IllegalAccessException {
+        properties = findProperties();
+        Map<String/*databaseId*/, /*databaseKeyPrefix*/String> masterKey = new HashMap<>(10);
+        Map<String/*databaseId*/, /*databaseKeyPrefix*/String> slaverKey = new HashMap<>(10);
         properties.forEach((key, value) -> {
-            if (key instanceof String && value instanceof String) {
-                if (key.startsWith(MASTER_PREFIX) && key.endsWith(ID)) {
-                    masterKey.put(value, key.substring(0, key.length() - 3));
-                } else if (key.startsWith(SLAVER_PREFIX) && key.endsWith(ID)) {
-                    slaverKey.put(value, key.substring(0, key.length() - 3));
-                } else if (key.equals(DEFAULT_DATABASE_ID)) {
-                    defaultDatabaseId = value;
-                }
+            //datasource.master.ds0-id:datasource.master.ds0
+            if (key.startsWith(MASTER_PREFIX) && key.endsWith(ID)) {
+                masterKey.put(value, key.substring(0, key.length() - 3));
+            } else if (key.startsWith(SLAVER_PREFIX) && key.endsWith(ID)) {
+                slaverKey.put(value, key.substring(0, key.length() - 3));
+            } else if (key.equals(DEFAULT_DATABASE_ID)) {
+                defaultDatabaseId = value;
             }
+
         });
         //主从分开属性解释
-        Map<String, DataSourceProperties> masters = new HashMap<>(masterKey.size());
+        Map<String, DP> masters = new HashMap<>(masterKey.size());
         processProperties(masterKey, masters);
-        Map<String, DataSourceProperties> slavers = new HashMap<>(slaverKey.size());
+        Map<String, DP> slavers = new HashMap<>(slaverKey.size());
         processProperties(slaverKey, slavers);
         //整合多套一主多从数据
         masters.forEach((mDataId, mProperites) -> {
@@ -93,15 +103,20 @@ public class DataSourcePropertiesParser {
     }
 
 
-    public Map<String, DataSourceProperties> getDatasourceProperties() {
+    public Map<String, DP> getDatasourceProperties() {
         return datasourceProperties;
     }
 
-    private void processProperties(Map<String, String> dataSourceKey, Map<String, DataSourceProperties> result) {
-        for (Map.Entry<String, String> entry : dataSourceKey.entrySet()) {
-            DataSourceProperties dataSourceProperties = new DataSourceProperties();
-            String dataPrefix = entry.getValue();
+    public String getDefaultDatabaseId() {
+        return defaultDatabaseId;
+    }
+
+    private void processProperties(Map<String, String> dataSourceKey, Map<String, DP> result) throws IllegalAccessException, InstantiationException {
+          for (Map.Entry<String, String> entry : dataSourceKey.entrySet()) {
             String dataId = entry.getKey();
+            String dataPrefix = entry.getValue();
+
+            DP dataSourceProperties = getPropetiesClass().newInstance();
             dataSourceProperties.setId(dataId);
             properties.forEach((key, value) -> {
                 if (key.startsWith(dataPrefix) && key.endsWith("url")) {
@@ -112,14 +127,36 @@ public class DataSourcePropertiesParser {
                     dataSourceProperties.setPassword(value);
                 } else if (key.startsWith(dataPrefix) && key.endsWith("masterId")) {
                     dataSourceProperties.setParentId(value);
+                }else {
+                    if (key.startsWith(dataPrefix)) {
+                        processCustomerProperties(dataSourceProperties,key,value);
+                    }
+
                 }
             });
             result.put(dataId, dataSourceProperties);
         }
-        ;
     }
 
-    public String getDefaultDatabaseId() {
-        return defaultDatabaseId;
+    protected abstract Class<DP> getPropetiesClass();
+
+
+    /**
+     *  自定义属性
+     *  etc:
+     *   if (propertyKey.startsWith(propertyKeyPrefix) && propertyKey.endsWith("xxx")) {
+     *   dataSourceProperties.setUrl(propertyValue);
+     *    }
+     * @param dataSourceProperties 某个数据源属性
+     * @param propertyKey 属性key
+     * @param propertyValue
+     */
+    protected abstract void processCustomerProperties(DP dataSourceProperties,String propertyKey,String propertyValue);
+
+
+
+    protected boolean match(String propertyKey,String propertyKeySuffix){
+         return propertyKey.endsWith(propertyKeySuffix);
     }
+
 }
