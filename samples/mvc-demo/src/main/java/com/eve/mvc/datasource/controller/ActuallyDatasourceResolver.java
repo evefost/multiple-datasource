@@ -10,7 +10,7 @@ import javax.sql.DataSource;
 /**
  * @author 谢洋
  */
-public class ActuallyDatasourceResolver implements DataSourceResolver {
+public class ActuallyDatasourceResolver implements DataSourceResolver<DataSource,DataSourceProperties> {
 
     @Override
     public DataSource createDataSource(DataSourceProperties properties) {

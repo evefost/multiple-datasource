@@ -9,7 +9,7 @@ import com.zaxxer.hikari.HikariDataSource;
  *
  * @author 谢洋
  */
-public class ActuallyDatasourceResolver implements DataSourceResolver<DynamicDataSource> {
+public class ActuallyDatasourceResolver implements DataSourceResolver<DynamicDataSource,DataSourceProperties> {
 
     @Override
     public DynamicDataSource createDataSource(DataSourceProperties properties) {

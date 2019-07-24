@@ -1,17 +1,16 @@
 package test.com.eve.datasource.extend;
 
 import com.eve.multiple.DataSourceResolver;
-import com.eve.multiple.config.DataSourceProperties;
 import com.eve.multiple.datasource.DynamicDataSource;
 import com.zaxxer.hikari.HikariDataSource;
 
 /**
  * @author 谢洋
  */
-public class ActuallyDatasourceResolver implements DataSourceResolver<DynamicDataSource> {
+public class ActuallyDatasourceResolver implements DataSourceResolver<DynamicDataSource,CustomerProperties> {
 
     @Override
-    public DynamicDataSource createDataSource(DataSourceProperties properties) {
+    public DynamicDataSource createDataSource(CustomerProperties properties) {
         HikariDataSource delegate = new HikariDataSource();
         delegate.setDriverClassName("com.mysql.jdbc.Driver");
         delegate.setJdbcUrl(properties.getUrl());

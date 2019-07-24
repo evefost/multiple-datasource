@@ -8,7 +8,7 @@ import javax.sql.DataSource;
 /**
  * @author Administrator
  */
-public interface DataSourceResolver<T extends DataSource> {
+public interface DataSourceResolver<T extends DataSource,DP extends DataSourceProperties> {
 
-    T createDataSource(DataSourceProperties properties);
+    T createDataSource(DP properties);
 }
