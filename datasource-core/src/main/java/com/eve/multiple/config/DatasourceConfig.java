@@ -120,7 +120,7 @@ public class DatasourceConfig implements SmartInitializingSingleton, Environment
         logger.info("registryPlatformTransactionManager ");
         Map<String, DataSourceProperties> datasourceProperties = sourceProperties.getDatasourceProperties();
         datasourceProperties.forEach((databaseId, properties) -> {
-            if (properties.getParentId() == null) {
+            if (properties.isMaster()) {
                 GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
                 beanDefinition.setBeanClass(DataSourceTransactionManager.class);
                 MutablePropertyValues propertyValues = new MutablePropertyValues();
