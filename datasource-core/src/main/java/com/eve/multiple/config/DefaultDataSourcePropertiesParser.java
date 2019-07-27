@@ -1,3 +1,4 @@
+
 package com.eve.multiple.config;
 
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -12,7 +13,7 @@ public  class DefaultDataSourcePropertiesParser extends DataSourceBaseProperties
     }
 
     @Override
-    protected Class<DataSourceProperties> getPropetiesClass() {
+    protected Class<DataSourceProperties> getPropertiesClass() {
         return DataSourceProperties.class;
     }
 

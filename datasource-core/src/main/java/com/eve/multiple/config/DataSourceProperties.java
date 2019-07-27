@@ -1,3 +1,4 @@
+
 package com.eve.multiple.config;
 
 import java.util.ArrayList;
@@ -29,10 +30,22 @@ public class DataSourceProperties {
      */
     private boolean isDefault;
 
+    /**
+     * 否是为共享源，true多租户同时可使用
+     */
+    private boolean share = false;
+
     public boolean isMaster() {
         return parentId == null;
     }
 
+    public boolean isShare() {
+        return share;
+    }
+
+    public void setShare(boolean share) {
+        this.share = share;
+    }
 
     /**
      *如果主从可能有从库

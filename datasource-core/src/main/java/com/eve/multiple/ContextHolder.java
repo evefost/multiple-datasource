@@ -1,3 +1,4 @@
+
 package com.eve.multiple;
 
 import java.util.HashMap;
@@ -13,20 +14,19 @@ public class ContextHolder {
     private  ThreadLocal<InterceptorCounter> interceptorCounter = ThreadLocal.withInitial(() -> new InterceptorCounter());
 
 
+    private ThreadLocal<Map<Integer, DatabaseMeta>> currentDatabaseHolder = ThreadLocal.withInitial(() -> new HashMap<>());
 
-    private   ThreadLocal<Map<Integer,String>> currentDatabaseId = ThreadLocal.withInitial(() -> new HashMap<>());
-
-
-
-    public   void setCurrentDatabaseId(String databaseId){
-        Map<Integer, String> currentDatabase = currentDatabaseId.get();
-        if (databaseId == null) {
+    public void setCurrentDatabase(DatabaseMeta database) {
+        Map<Integer, DatabaseMeta> currentDatabase = currentDatabaseHolder.get();
+        if (database == null) {
             currentDatabase.remove(interceptorCounter.get().value());
         } else {
             int value = interceptorCounter.get().value();
-            currentDatabase.put(value, databaseId);
+            currentDatabase.put(value, database);
         }
     }
+
+
 
     public  int increase() {
         return interceptorCounter.get().increase();
@@ -36,9 +36,11 @@ public class ContextHolder {
         return interceptorCounter.get().decrease();
     }
 
-    public  String currentDatabaseId() {
+
+
+    public DatabaseMeta currentDatabase() {
         InterceptorCounter transactionCounter = interceptorCounter.get();
-        return currentDatabaseId.get().get(transactionCounter.value());
+        return currentDatabaseHolder.get().get(transactionCounter.value());
     }
 
     public  int counterValue() {

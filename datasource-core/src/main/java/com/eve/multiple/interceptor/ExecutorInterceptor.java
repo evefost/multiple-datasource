@@ -1,5 +1,7 @@
+
 package com.eve.multiple.interceptor;
 
+import com.eve.multiple.DatabaseMeta;
 import com.eve.multiple.RouteContextManager;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
@@ -57,38 +59,41 @@ public class ExecutorInterceptor implements Interceptor {
     }
 
     private void calculateDatasource(MappedStatement ms){
-        String databaseId = RouteContextManager.currentDatabaseId();
-        String msBindId = ms.getDatabaseId();
-        String currentId = databaseId;
-        if(msBindId != null){
-            currentId = msBindId;
+        DatabaseMeta database = RouteContextManager.currentDatabase();
+        DatabaseMeta msBindDb = RouteContextManager.getStatementDatabaseMeta(ms.getId());
+        DatabaseMeta currentDatabase = database;
+        if(msBindDb != null){
+            DatabaseMeta databaseMeta = new DatabaseMeta();
+            databaseMeta.setDatabaseId(msBindDb.getDatabaseId());
+            databaseMeta.setShare(msBindDb.isShare());
+            currentDatabase = databaseMeta;
         }
         if (logger.isDebugEnabled()) {
-            logger.debug("{} bind database [{}]", ms.getId(), msBindId);
+            logger.debug("{} bind database [{}]", ms.getId(), msBindDb);
         }
-        String masterId =  null;
-        if(RouteContextManager.isMaster(currentId)){
-            masterId =  currentId;
+        DatabaseMeta master =  null;
+        if(RouteContextManager.isMaster(currentDatabase)){
+            master =  currentDatabase;
 
         }else {
-            masterId =  RouteContextManager.getMasterId(currentId);
+            master =  RouteContextManager.getMaster(currentDatabase);
         }
-        String slaverId = RouteContextManager.getSlaverId(masterId);
+        DatabaseMeta slaver = RouteContextManager.getSlaver(master);
         boolean isSelect  =  SqlCommandType.SELECT.equals(ms.getSqlCommandType());
         String tip = "";
         if(RouteContextManager.hasTransaction()){
-            RouteContextManager.setCurrentDatabaseId(masterId,true);
+            RouteContextManager.setCurrentDatabase(master,true);
             tip = "has transaction ";
         }else {
             if(!RouteContextManager.hadUpdateBefore() && isSelect){
                 //查询操作且之前没有过更新操作
-                RouteContextManager.setCurrentDatabaseId(slaverId==null?masterId:slaverId,false);
+                RouteContextManager.setCurrentDatabase(slaver==null?master:slaver,false);
                 tip = "no transaction ";
             }else {
-                RouteContextManager.setCurrentDatabaseId(masterId,false);
+                RouteContextManager.setCurrentDatabase(master,false);
                 if(isSelect){
                     if (logger.isDebugEnabled()) {
-                        logger.debug("no transaction query，but had update before,so switch to master[{}]", masterId);
+                        logger.debug("no transaction query，but had update before,so switch to master[{}]", master);
                     }
                     tip = "no transaction,but had update before";
                 } else {
@@ -96,13 +101,13 @@ public class ExecutorInterceptor implements Interceptor {
                 }
             }
         }
-        boolean master = RouteContextManager.isMaster(RouteContextManager.currentDatabaseId());
+        boolean isMaster = RouteContextManager.isMaster(RouteContextManager.currentDatabase());
         if(!isSelect){
             RouteContextManager.markUpdateOperateFlag();
         }
 
         if (logger.isDebugEnabled()) {
-            logger.info("[{}] should connect to [{}][{}]({})", ms.getSqlCommandType(), master ? "master" : "slaver", RouteContextManager.currentDatabaseId(), tip);
+            logger.info("[{}] should connect to [{}][{}]({})", ms.getSqlCommandType(), isMaster ? "master" : "slaver", RouteContextManager.currentDatabase(), tip);
         }
     }
 

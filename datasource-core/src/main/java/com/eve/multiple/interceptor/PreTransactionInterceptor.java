@@ -1,6 +1,10 @@
+
+
 package com.eve.multiple.interceptor;
 
 
+
+import com.eve.multiple.DatabaseMeta;
 import com.eve.multiple.RouteContextManager;
 import com.eve.multiple.config.DatasourceConfig;
 import org.aopalliance.intercept.MethodInvocation;
@@ -26,26 +30,26 @@ public class PreTransactionInterceptor extends TransactionInterceptor {
                 logger.debug("enter transaction interceptor ");
             }
         }
-        String databaseId = RouteContextManager.getDatabaseId(invocation.getMethod());
-        if(databaseId == null){
-            databaseId = RouteContextManager.getDefaultDatabaseId();
+        DatabaseMeta database = RouteContextManager.getDatabase(invocation.getMethod());
+        if(database == null){
+            database = RouteContextManager.getDefaultDatabase();
         }
-        boolean master = RouteContextManager.isMaster(databaseId);
+        boolean master = RouteContextManager.isMaster(database);
         if(master){
-            RouteContextManager.setCurrentDatabaseId(databaseId, true);
+            RouteContextManager.setCurrentDatabase(database, true);
         }else {
             //自动切到主库
-            String masterId = RouteContextManager.getMasterId(databaseId);
-            RouteContextManager.setCurrentDatabaseId(masterId, true);
+            DatabaseMeta masterDatabase = RouteContextManager.getMaster(database);
+            RouteContextManager.setCurrentDatabase(masterDatabase, true);
             if (logger.isDebugEnabled()) {
-                logger.debug("slaver[{}] switch to master[{}](has transaction)", databaseId, masterId);
+                logger.debug("slaver[{}] switch to master[{}](has transaction)", database, masterDatabase);
             }
         }
 
         try {
             return super.invoke(invocation);
         } finally {
-            RouteContextManager.setCurrentDatabaseId(null, true);
+            RouteContextManager.setCurrentDatabase(null, true);
             int decrease = RouteContextManager.decrease(true);
             if (decrease == 0) {
                 if (logger.isDebugEnabled()) {

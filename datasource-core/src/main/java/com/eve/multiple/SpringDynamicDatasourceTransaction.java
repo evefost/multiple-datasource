@@ -1,3 +1,5 @@
+
+
 package com.eve.multiple;
 
 import com.eve.multiple.datasource.MultipleDataSource;
@@ -73,8 +75,11 @@ public class SpringDynamicDatasourceTransaction implements Transaction {
         if (dataSource instanceof MultipleDataSource) {
             String databaseId = RouteContextManager.currentDatabaseId();
             MultipleDataSource multipleDataSource = (MultipleDataSource) this.dataSource;
-            DataSource dyds = multipleDataSource.getDatasource(databaseId);
-            return dyds;
+            DataSource ds = multipleDataSource.getDatasource(databaseId);
+            if(ds == null){
+                throw new RuntimeException("没找到数据源:["+databaseId+"]");
+            }
+            return ds;
         }
         return this.dataSource;
     }

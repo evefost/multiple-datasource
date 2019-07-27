@@ -19,7 +19,7 @@ public interface AService {
 
   User queryByIdWithTransaction(Integer id);
 
-  @Transactional
+//  @Transactional
   void save(User user);
 
   void saveWithTransaction(User user);
@@ -36,10 +36,10 @@ public interface AService {
   void saveMutipleDao(User user);
 
 
-  @Transactional
+//  @Transactional
   void mutipleOperate();
 
 
-    @Transactional
+//    @Transactional
   void mutipleOperate2();
 }

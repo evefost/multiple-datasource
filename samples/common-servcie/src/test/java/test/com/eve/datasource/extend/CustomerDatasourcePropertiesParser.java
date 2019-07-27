@@ -9,7 +9,7 @@ public class CustomerDatasourcePropertiesParser extends DataSourceBaseProperties
 
 
     @Override
-    protected Class<CustomerProperties> getPropetiesClass() {
+    protected Class<CustomerProperties> getPropertiesClass() {
         return CustomerProperties.class;
     }
 

@@ -3,7 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd"
         >
-<mapper namespace="com.eve.common.dao.AMapper">
+<mapper namespace="com.eve.common.dao.AMapper" >
     <insert id="insertUser" parameterType="com.eve.common.entity.User">
       INSERT INTO user(name,age) VALUES (#{name},#{age})
     </insert>

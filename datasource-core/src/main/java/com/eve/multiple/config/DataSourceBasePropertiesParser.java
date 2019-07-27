@@ -1,18 +1,22 @@
+
 package com.eve.multiple.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.core.env.MutablePropertySources;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author xieyang
  */
-public abstract class DataSourceBasePropertiesParser<DP extends DataSourceProperties> {
+public abstract class DataSourceBasePropertiesParser<DP extends DataSourceProperties> implements PropertiesParser, EnvironmentAware {
+
+    public final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final String ID = "id";
 
@@ -42,8 +46,10 @@ public abstract class DataSourceBasePropertiesParser<DP extends DataSourceProper
 
     }
 
-    public void setEnvironment(ConfigurableEnvironment environment) {
-        this.environment = environment;
+    @Override
+    public void setEnvironment(Environment environment) {
+        this.environment = (ConfigurableEnvironment) environment;
+
     }
 
     private Map<String, String> findProperties() {
@@ -68,7 +74,8 @@ public abstract class DataSourceBasePropertiesParser<DP extends DataSourceProper
 
     }
 
-    public void parse() throws InstantiationException, IllegalAccessException {
+    @Override
+    public MultipleSourceProperties<DP> parse() {
         properties = findProperties();
         Map<String/*databaseId*/, /*databaseKeyPrefix*/String> masterKey = new HashMap<>(10);
         Map<String/*databaseId*/, /*databaseKeyPrefix*/String> slaverKey = new HashMap<>(10);
@@ -100,6 +107,10 @@ public abstract class DataSourceBasePropertiesParser<DP extends DataSourceProper
         slavers.forEach((k, v) -> {
             datasourceProperties.put(k, v);
         });
+        MultipleSourceProperties<DP> multipleSourceProperties = new MultipleSourceProperties();
+        multipleSourceProperties.setDatasourceProperties(datasourceProperties);
+        multipleSourceProperties.setDefaultDatabaseId(defaultDatabaseId);
+        return multipleSourceProperties;
     }
 
 
@@ -111,14 +122,23 @@ public abstract class DataSourceBasePropertiesParser<DP extends DataSourceProper
         return defaultDatabaseId;
     }
 
-    private void processProperties(Map<String, String> dataSourceKey, Map<String, DP> result) throws IllegalAccessException, InstantiationException {
-          for (Map.Entry<String, String> entry : dataSourceKey.entrySet()) {
+    private void processProperties(Map<String, String> dataSourceKey, Map<String, DP> result) {
+        for (Map.Entry<String, String> entry : dataSourceKey.entrySet()) {
             String dataId = entry.getKey();
             String dataPrefix = entry.getValue();
 
-            DP dataSourceProperties = getPropetiesClass().newInstance();
+            DP dataSourceProperties = null;
+            try {
+                dataSourceProperties = getPropertiesClass().newInstance();
+            } catch (Throwable e) {
+                logger.error("创建数据源属性实例出错", e);
+                throw new RuntimeException("创建数据源属性实例出错");
+            }
             dataSourceProperties.setId(dataId);
-            properties.forEach((key, value) -> {
+            Set<Map.Entry<String, String>> entries = properties.entrySet();
+            for (Map.Entry<String, String> entry2 : entries) {
+                String key = entry2.getKey();
+                String value = entry2.getValue();
                 if (key.startsWith(dataPrefix) && key.endsWith("url")) {
                     dataSourceProperties.setUrl(value);
                 } else if (key.startsWith(dataPrefix) && key.endsWith("username")) {
@@ -127,36 +147,36 @@ public abstract class DataSourceBasePropertiesParser<DP extends DataSourceProper
                     dataSourceProperties.setPassword(value);
                 } else if (key.startsWith(dataPrefix) && key.endsWith("masterId")) {
                     dataSourceProperties.setParentId(value);
-                }else {
+                } else {
                     if (key.startsWith(dataPrefix)) {
-                        processCustomerProperties(dataSourceProperties,key,value);
+                        processCustomerProperties(dataSourceProperties, key, value);
                     }
 
                 }
-            });
+            }
             result.put(dataId, dataSourceProperties);
         }
     }
 
-    protected abstract Class<DP> getPropetiesClass();
+    protected abstract Class<DP> getPropertiesClass();
 
 
     /**
-     *  自定义属性
-     *  etc:
-     *   if (propertyKey.startsWith(propertyKeyPrefix) && propertyKey.endsWith("xxx")) {
-     *   dataSourceProperties.setUrl(propertyValue);
-     *    }
+     * 自定义属性
+     * etc:
+     * if (propertyKey.startsWith(propertyKeyPrefix) && propertyKey.endsWith("xxx")) {
+     * dataSourceProperties.setUrl(propertyValue);
+     * }
+     *
      * @param dataSourceProperties 某个数据源属性
-     * @param propertyKey 属性key
+     * @param propertyKey          属性key
      * @param propertyValue
      */
-    protected abstract void processCustomerProperties(DP dataSourceProperties,String propertyKey,String propertyValue);
+    protected abstract void processCustomerProperties(DP dataSourceProperties, String propertyKey, String propertyValue);
 
 
-
-    protected boolean match(String propertyKey,String propertyKeySuffix){
-         return propertyKey.endsWith(propertyKeySuffix);
+    protected boolean match(String propertyKey, String propertyKeySuffix) {
+        return propertyKey.endsWith(propertyKeySuffix);
     }
 
 }

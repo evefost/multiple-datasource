@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -45,12 +44,12 @@ public class AServiceImpl implements AService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
+//    @Transactional(rollbackFor = Exception.class)
     public void saveWithTransaction(User user) {
         aMapper.insertUser(user);
     }
 
-    @Transactional
+//    @Transactional
     @Override
     public User queryById(Integer id) {
         User user = aMapper.queryById(id);
@@ -68,7 +67,7 @@ public class AServiceImpl implements AService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
+//    @Transactional(rollbackFor = Exception.class)
     public User queryByIdWithTransaction(Integer id) {
         return aMapper.queryById(id);
     }

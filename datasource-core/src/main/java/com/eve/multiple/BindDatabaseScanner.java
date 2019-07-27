@@ -1,3 +1,4 @@
+
 package com.eve.multiple;
 
 
@@ -17,24 +18,50 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author Administrator
+ * @author xieyang
  */
 public class BindDatabaseScanner {
 
+
+
+
     private BeanDefinitionRegistry registry;
 
-    private MultipleSourceProperties sourceProperties;
+    private MultipleSourceProperties<DataSourceProperties> sourceProperties;
 
+    private boolean datasourceShareDefault=true;
+
+    private boolean tenantEnable=true;
+
+    public BindDatabaseScanner() {
+
+
+    }
 
     public BindDatabaseScanner(BeanDefinitionRegistry registry, MultipleSourceProperties sourceProperties) {
         this.registry = registry;
         this.sourceProperties = sourceProperties;
+    }
 
+    public void setRegistry(BeanDefinitionRegistry registry) {
+        this.registry = registry;
+    }
+
+    public void setSourceProperties(MultipleSourceProperties<DataSourceProperties> sourceProperties) {
+        this.sourceProperties = sourceProperties;
+    }
+
+    public void setDatasourceShareDefault(boolean datasourceShareDefault) {
+        this.datasourceShareDefault = datasourceShareDefault;
+    }
+
+    public void setTenantEnable(boolean tenantEnable) {
+        this.tenantEnable = tenantEnable;
     }
 
     public void scanServiceBindDatabaseIds() throws ClassNotFoundException {
         String[] beanDefinitionNames = registry.getBeanDefinitionNames();
-        Map<Method, MethodMapping> methodMappingMap = new HashMap<>();
+        Map<Method, MethodDatabase> methodMappingMap = new HashMap<>();
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         for (String beanName : beanDefinitionNames) {
 
@@ -44,11 +71,11 @@ public class BindDatabaseScanner {
             }
             Class<?> beanClass = classLoader.loadClass(beanDefinition.getBeanClassName());
             if (beanClass.isAnnotationPresent(Service.class)) {
-                String classDatabaseId = findDatabaseIdOnClass(beanClass);
-                parseMethodDatabaseId(classDatabaseId, beanClass, methodMappingMap);
+                Database classDatabase = findDatabaseAnnotation(beanClass);
+                parseMethodDatabaseId(classDatabase, beanClass, methodMappingMap);
                 Class<?>[] interfaces = beanClass.getInterfaces();
                 for (Class<?> ifc : interfaces) {
-                    parseMethodDatabaseId(classDatabaseId, ifc, methodMappingMap);
+                    parseMethodDatabaseId(classDatabase, ifc, methodMappingMap);
                 }
             }
         }
@@ -56,7 +83,7 @@ public class BindDatabaseScanner {
         RouteContextManager.setMethodDatabaseMapping(methodMappingMap);
     }
 
-    private String findDatabaseIdOnClass(Class<?> beanClass) {
+    private Database findDatabaseAnnotation(Class<?> beanClass) {
         Database annotation = null;
         if (beanClass.isAnnotationPresent(Database.class)) {
             Class<?>[] interfaces = beanClass.getInterfaces();
@@ -78,30 +105,41 @@ public class BindDatabaseScanner {
                 }
             }
         }
-        if (annotation == null) {
-            return null;
-        }
-        return annotation.value();
+        return annotation;
     }
 
-    private void parseMethodDatabaseId(String classDatabaseId, Class<?> clz, Map<Method,MethodMapping> methodMappingMap) {
+    private void parseMethodDatabaseId(Database classDatabase, Class<?> clz, Map<Method, MethodDatabase> methodMappingMap) {
+        String classDatabaseId = null;
+        boolean classShare = datasourceShareDefault;
+        if (classDatabase != null) {
+            classDatabaseId = classDatabase.value();
+            classShare = classDatabase.share();
+        }
         if (classDatabaseId != null) {
-            DataSourceProperties dps = sourceProperties.getDatasourceProperties().get(classDatabaseId);
+            DataSourceProperties dps = sourceProperties.getProperties(classDatabaseId);
             if (dps == null) {
                 throw new RuntimeException(clz.getName() + " bind databaseId:" + classDatabaseId + " is not exist");
             }
         }
         Method[] methods = clz.getDeclaredMethods();
         for (Method m : methods) {
-            MethodMapping methodMapping = new MethodMapping();
+            MethodDatabase methodMapping = new MethodDatabase();
+            DatabaseMeta databaseMeta = new DatabaseMeta();
+            methodMapping.setDatabaseMeta(databaseMeta);
             if (m.isAnnotationPresent(Database.class)) {
-                String methodDatabaseId = m.getAnnotation(Database.class).value();
+                Database methodDatabase = m.getAnnotation(Database.class);
+                String methodDatabaseId = methodDatabase.value();
                 if (methodDatabaseId != null) {
                     checkDatabaseExist(methodDatabaseId, clz, m);
                 }
-                methodMapping.setDatabaseId(methodDatabaseId);
+                databaseMeta.setShare(methodDatabase.share());
+                databaseMeta.setDatabaseId(methodDatabaseId);
             } else {
-                methodMapping.setDatabaseId(classDatabaseId);
+                databaseMeta.setDatabaseId(classDatabaseId);
+                databaseMeta.setShare(classShare);
+            }
+            if(!tenantEnable){
+                databaseMeta.setShare(true);
             }
             methodMapping.setMethod(m);
             methodMappingMap.put(m, methodMapping);
@@ -110,21 +148,27 @@ public class BindDatabaseScanner {
 
 
     private void checkDatabaseExist(String databaseId, Class clz, Method method) {
-        DataSourceProperties dataSourceProperties = sourceProperties.getDatasourceProperties().get(databaseId);
+        DataSourceProperties dataSourceProperties = sourceProperties.getProperties(databaseId);
         if (dataSourceProperties == null) {
             throw new RuntimeException(clz.getName() + method.getName() + "bind databaseId:" + databaseId + " not exist");
         }
     }
 
 
-    public static void scanMapperDatabaseIds(Configuration configuration) throws IllegalAccessException, NoSuchFieldException {
+    public  void scanMapperDatabaseIds(Configuration configuration) throws IllegalAccessException, NoSuchFieldException {
+
         Collection<Class<?>> mappers = configuration.getMapperRegistry().getMappers();
         Field databaseField = MappedStatement.class.getDeclaredField("databaseId");
         databaseField.setAccessible(true);
-        for (Class clzz : mappers) {
-            String clzDatabaseId = null;
+        Map<String/*mapperId*/,DatabaseMeta> databaseMetaMap = new HashMap<>();
+        for (Class<?> clzz : mappers) {
+            String classDatabaseId = null;
+            boolean classDatabaseShare = datasourceShareDefault;
             if (clzz.isAnnotationPresent(Database.class)) {
-                clzDatabaseId = ((Database) clzz.getAnnotation(Database.class)).value();
+                Database database = clzz.getAnnotation(Database.class);
+                classDatabaseId = database.value();
+                classDatabaseShare = database.share();
+
             }
             Method[] methods = clzz.getMethods();
             for (Method m : methods) {
@@ -133,41 +177,31 @@ public class BindDatabaseScanner {
                 if (stm == null) {
                     continue;
                 }
-                if (clzDatabaseId != null) {
-                    databaseField.set(stm, clzDatabaseId);
-                }
+
+                String methodDatabaseId = classDatabaseId;
+                boolean methodShare = classDatabaseShare;
                 if (m.isAnnotationPresent(Database.class)) {
-                    String databaseId = m.getAnnotation(Database.class).value();
-                    databaseField.set(stm, databaseId);
+                    Database methodDb = m.getAnnotation(Database.class);
+                    methodDatabaseId = methodDb.value();
+                    methodShare = methodDb.share();
+                    databaseField.set(stm, methodDatabaseId);
                 }
 
+                if(methodDatabaseId != null){
+                    databaseField.set(stm, methodDatabaseId);
+                    DatabaseMeta databaseMeta = new DatabaseMeta();
+                    databaseMeta.setDatabaseId(methodDatabaseId);
+                    databaseMeta.setShare(methodShare);
+                    databaseMetaMap.put(stm.getId(),databaseMeta);
+                    if(!tenantEnable){
+                        databaseMeta.setShare(true);
+                    }
+                }
             }
 
         }
+        RouteContextManager.setStatementDatabaseMapping(databaseMetaMap);
     }
 
-
-    public static class MethodMapping {
-
-        private Method method;
-
-        private String databaseId;
-
-        public Method getMethod() {
-            return method;
-        }
-
-        public void setMethod(Method method) {
-            this.method = method;
-        }
-
-        public String getDatabaseId() {
-            return databaseId;
-        }
-
-        public void setDatabaseId(String databaseId) {
-            this.databaseId = databaseId;
-        }
-    }
 
 }

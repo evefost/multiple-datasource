@@ -1,5 +1,6 @@
 
 @startuml
+
 ApplicationContext->MapperFactoryBean:getObject()
 SqlSessionTemplate->SqlSessionTemplate: getMapper(type) type mapper interface
 SqlSessionTemplate->Configuration: getMapper(type, this)
