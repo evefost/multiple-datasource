@@ -2,23 +2,25 @@
 package com.eve.multiple;
 
 /**
+ * 业务拦截层计数器
+ *
  * @author xieyang
  */
 public class InterceptorCounter {
 
     private volatile int counter;
 
-    public int increase() {
+    int increase() {
         counter++;
         return counter;
     }
 
-    public int decrease() {
+    int decrease() {
         counter--;
         return counter;
     }
 
-    public int value() {
+    int value() {
         return counter;
     }
 }

@@ -1,12 +1,10 @@
 
 package com.eve.multiple.annotation;
 
-import com.eve.multiple.SourceType;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.*;
-
-import static com.eve.multiple.SourceType.SHARE;
 
 /**
  *
@@ -14,9 +12,18 @@ import static com.eve.multiple.SourceType.SHARE;
  * @date 2019/8/15
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target({ElementType.METHOD})
 @Documented
-public @interface Database {
+@Bean
+public @interface DatabaseProperties {
+
+
+    /**
+     * 是否设为默认数据源
+     *
+     * @return default false
+     */
+    boolean isDefault() default false;
 
     /**
      * 设置定数据源id
@@ -28,18 +35,17 @@ public @interface Database {
 
     /**
      * 设置定数据源id
-     *
      * @return default ""
      */
     @AliasFor("value")
     String databaseId() default "";
 
-
     /**
-     * 数据源类型
+     * 指定该属性的主库id
+     * 如果没指定，则属性源为主库，否则为指定主库的从库
      *
-     * @return default {@link SourceType#SHARE}
+     * @return default ""
      */
-    SourceType type() default SHARE;
+    String masterId() default "";
 
 }

@@ -3,6 +3,7 @@ package com.eve.boot;
 
 import com.eve.common.entity.User;
 import com.eve.common.service.AService;
+import com.xxx.starter.DatasourceProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -32,6 +33,9 @@ public class TestController implements ApplicationContextAware{
 
   @Autowired
   private AService aService;
+
+  @Autowired
+  private DatasourceProperties datasourceProperties;
 
 
   @GetMapping("getUser")

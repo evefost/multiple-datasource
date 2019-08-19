@@ -3,75 +3,90 @@ package com.eve.multiple.interceptor;
 
 
 import com.eve.multiple.DatabaseMeta;
+import com.eve.multiple.DatasourceManager;
 import com.eve.multiple.RouteContextManager;
+import com.eve.multiple.ServiceProxyProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.List;
 
 /**
- * @author Administrator
+ * service 层代理拦截器
+ * <p>
+ *
+ * @author xieyang
+ * @date 2019/7/26
  */
 public class ServiceInterceptor implements InvocationHandler {
 
+    private final static String METHOD_EQUALS = "equals";
+
+    private final static String METHOD_HASHCODE = "hashCode";
+
+    private final static String METHOD_TOSTRING = "toString";
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private Class<?> targetClass;
 
     private Object target;
 
-    private Class<?>[] interfaces;
+    private List<Class<?>> interfaces;
 
-
-    public ServiceInterceptor(Object target, Class<?>[] interfaces) {
-        this.target = target;
-        this.interfaces = interfaces;
+    public ServiceInterceptor(ServiceProxyProcessor.TargetMapper targetMapper) {
+        this.target = targetMapper.getTarget();
+        this.interfaces = targetMapper.getInterfaces();
+        this.targetClass = targetMapper.getTargetClass();
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        if ("equals".equals(method.getName())) {
+        if (METHOD_EQUALS.equals(method.getName())) {
             return method.equals(target);
-        } else if ("hashCode".equals(method.getName())) {
+        } else if (METHOD_HASHCODE.equals(method.getName())) {
             return method.hashCode();
-        } else if ("toString".equals(method.getName())) {
+        } else if (METHOD_TOSTRING.equals(method.getName())) {
             return method.toString();
         }
-
+        DatasourceManager.checkRefresh();
         int increase = RouteContextManager.increase(false);
-        if (increase == 1) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("enter service {} >>>>>>>>>>>> ", method.getDeclaringClass());
-            }
+        if (increase == 1 && logger.isTraceEnabled()) {
+            logger.trace("enter service {} >>>>>>>>>>>> ", method.getDeclaringClass());
         }
-        DatabaseMeta database = RouteContextManager.getDatabase(method);
-        String methodName = method.getDeclaringClass().getSimpleName() + "." + method.getName();
-        if (database == null) {
-            database = RouteContextManager.getDefaultDatabase();
-            if (logger.isDebugEnabled()) {
-                logger.debug("{} use default database [{}]", methodName, database);
-            }
-        } else {
-            if (logger.isDebugEnabled()) {
-                logger.debug("{} bind database [{}]", methodName, database);
-            }
+        DatabaseMeta database = RouteContextManager.getDatabase(targetClass, method);
+        if (logger.isDebugEnabled()) {
+            logger.debug("{}", database);
         }
         RouteContextManager.setCurrentDatabase(database, false);
         try {
             return method.invoke(target, args);
+        } catch (Exception throwable) {
+            throw findBusinessException(throwable);
         } finally {
             RouteContextManager.setCurrentDatabase(null, false);
             int decrease = RouteContextManager.decrease(false);
             if (decrease == 0) {
                 RouteContextManager.removeUpdateOperateFlag();
-                if (logger.isDebugEnabled()) {
-                    logger.debug("out of service {}<<<<<<<<<<<<<<", method.getDeclaringClass());
+                if (logger.isTraceEnabled()) {
+                    logger.trace("out of service {}<<<<<<<<<<<<<<", method.getDeclaringClass());
                 }
             }
         }
     }
 
+    private Throwable findBusinessException(Throwable throwable) {
+        Throwable cause = throwable.getCause();
+        if (cause == null) {
+            return throwable;
+        }
+        return findBusinessException(cause);
+    }
+
     @Override
     public String toString() {
-        return "$Proxy$" + interfaces[0].getName();
+        return "$Proxy$" + interfaces.get(0).getName();
     }
 }

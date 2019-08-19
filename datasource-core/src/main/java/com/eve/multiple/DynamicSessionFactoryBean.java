@@ -1,6 +1,7 @@
 
 package com.eve.multiple;
 
+import com.eve.multiple.event.StatementBuildFinishEvent;
 import com.eve.multiple.interceptor.ExecutorInterceptor;
 import org.apache.ibatis.builder.xml.XMLConfigBuilder;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
@@ -22,8 +23,8 @@ import org.apache.ibatis.type.TypeHandler;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.transaction.SpringManagedTransactionFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -42,9 +43,10 @@ import static org.springframework.util.StringUtils.hasLength;
 import static org.springframework.util.StringUtils.tokenizeToStringArray;
 
 /**
+ * mybatis factoryBean 代理工厂
  * @author xieyang
  */
-public class DynamicSessionFactoryBean extends SqlSessionFactoryBean implements BeanFactoryAware {
+public class DynamicSessionFactoryBean extends SqlSessionFactoryBean implements ApplicationContextAware {
 
 
     private static final Log LOGGER = LogFactory.getLog(SqlSessionFactoryBean.class);
@@ -93,6 +95,7 @@ public class DynamicSessionFactoryBean extends SqlSessionFactoryBean implements 
 
     private ObjectWrapperFactory objectWrapperFactory;
 
+    private ApplicationContext applicationContext;
 
     /**
      * Sets the ObjectFactory.
@@ -362,9 +365,8 @@ public class DynamicSessionFactoryBean extends SqlSessionFactoryBean implements 
                 "Property 'configuration' and 'configLocation' can not specified with together");
         this.sqlSessionFactory = buildSqlSessionFactory();
         configuration.addInterceptor(new ExecutorInterceptor());
-
+        applicationContext.publishEvent(new StatementBuildFinishEvent(configuration));
     }
-
 
     /**
      * Build a {@code SqlSessionFactory} instance.
@@ -551,7 +553,6 @@ public class DynamicSessionFactoryBean extends SqlSessionFactoryBean implements 
         return true;
     }
 
-
     @Override
     public void onApplicationEvent(ApplicationEvent event) {
         super.onApplicationEvent(event);
@@ -559,20 +560,12 @@ public class DynamicSessionFactoryBean extends SqlSessionFactoryBean implements 
             // fail-fast -> check all statements are completed
             this.sqlSessionFactory.getConfiguration().getMappedStatementNames();
         }
-        BindDatabaseScanner scanner = beanFactory.getBean(BindDatabaseScanner.class);
-        try {
-            scanner.scanMapperDatabaseIds(configuration);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        }
+
     }
 
-    private BeanFactory beanFactory;
 
     @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-        this.beanFactory = beanFactory;
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }

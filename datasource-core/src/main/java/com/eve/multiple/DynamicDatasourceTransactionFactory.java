@@ -10,8 +10,9 @@ import java.sql.Connection;
 import java.util.Properties;
 
 /**
- *
- * @author 谢洋
+ * 数据源事务工厂
+ * 替换默认的
+ * @author xieyang
  */
 public class DynamicDatasourceTransactionFactory implements TransactionFactory {
 

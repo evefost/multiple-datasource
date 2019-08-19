@@ -1,24 +1,33 @@
 
-package com.eve.multiple.config;
+package com.eve.multiple.properties;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
+ *  数据源属性基类
+ * <p>
  *
  * @author xieyang
+ * @date 2019/7/26
  */
-public class DataSourceProperties {
+public class BaseDataSourceProperties {
+
+    /**
+     * 数据源id
+     */
+    private String id;
+
+    /**
+     * 租户id
+     */
+    private String tenantId;
 
     private String url;
 
     private String username;
 
     private String password;
-    /**
-     * 数据源id
-     */
-    private String id;
 
     /**
      * 如果是从库，有所属主库id
@@ -29,31 +38,29 @@ public class DataSourceProperties {
      * 是否为默认库
      */
     private boolean isDefault;
-
     /**
-     * 否是为共享源，true多租户同时可使用
+     * 如果主从可能有从库
      */
-    private boolean share = false;
+    private List<BaseDataSourceProperties> slavers = new ArrayList<>();
 
     public boolean isMaster() {
         return parentId == null;
     }
 
-    public boolean isShare() {
-        return share;
+    public String getTenantId() {
+        return tenantId;
     }
 
-    public void setShare(boolean share) {
-        this.share = share;
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
     }
-
-    /**
-     *如果主从可能有从库
-     */
-    private List<DataSourceProperties> slavers = new ArrayList<>();
 
     public String getUrl() {
         return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getParentId() {
@@ -62,10 +69,6 @@ public class DataSourceProperties {
 
     public void setParentId(String parentId) {
         this.parentId = parentId;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
     }
 
     public String getUsername() {
@@ -100,16 +103,26 @@ public class DataSourceProperties {
         isDefault = aDefault;
     }
 
-    public List<DataSourceProperties> getSlavers() {
+    public List<BaseDataSourceProperties> getSlavers() {
         return slavers;
     }
 
-    public void setSlavers(List<DataSourceProperties> slavers) {
-        this.slavers = slavers;
+
+    public void addSlaver(BaseDataSourceProperties properties) {
+        this.slavers.add(properties);
     }
 
-
-    public void addSlaver(DataSourceProperties properties){
-        this.slavers.add(properties);
+    @Override
+    public String toString() {
+        return "BaseDataSourceProperties{" +
+                "id='" + id + '\'' +
+                ", tenantId='" + tenantId + '\'' +
+                ", url='" + url + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", parentId='" + parentId + '\'' +
+                ", isDefault=" + isDefault +
+                ", slavers=" + slavers +
+                '}';
     }
 }

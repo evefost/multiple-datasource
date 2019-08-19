@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Created by Administrator on 2018/3/2.
  */
-@Database("ds0")
+@Database("ds7")
 
 public interface AService {
 

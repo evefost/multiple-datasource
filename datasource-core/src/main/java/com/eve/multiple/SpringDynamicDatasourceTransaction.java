@@ -1,12 +1,10 @@
 
-
 package com.eve.multiple;
 
 import com.eve.multiple.datasource.MultipleDataSource;
-import org.apache.ibatis.logging.Log;
-import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.transaction.Transaction;
-import org.mybatis.spring.transaction.SpringManagedTransaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.datasource.ConnectionHolder;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -14,15 +12,17 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Set;
 
 import static org.springframework.util.Assert.notNull;
 
 /**
- * @author 谢洋
+ * 自定义事务实例
+ * @author xieyang
  */
 public class SpringDynamicDatasourceTransaction implements Transaction {
 
-    private static final Log LOGGER = LogFactory.getLog(SpringManagedTransaction.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final DataSource dataSource;
 
@@ -61,8 +61,8 @@ public class SpringDynamicDatasourceTransaction implements Transaction {
         this.autoCommit = this.connection.getAutoCommit();
         this.isConnectionTransactional = DataSourceUtils.isConnectionTransactional(this.connection, getDataSource());
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(
+        if (logger.isTraceEnabled()) {
+            logger.trace(
                     "JDBC Connection ["
                             + this.connection
                             + "] will"
@@ -76,8 +76,11 @@ public class SpringDynamicDatasourceTransaction implements Transaction {
             String databaseId = RouteContextManager.currentDatabaseId();
             MultipleDataSource multipleDataSource = (MultipleDataSource) this.dataSource;
             DataSource ds = multipleDataSource.getDatasource(databaseId);
-            if(ds == null){
-                throw new RuntimeException("没找到数据源:["+databaseId+"]");
+            if (ds == null) {
+                DatabaseMeta databaseMeta = RouteContextManager.currentDatabase();
+                Set<String> dbIds = multipleDataSource.getDataSources().keySet();
+                logger.error("没找到数据源:[{}] :datasourceList[{}]", databaseId, databaseMeta, dbIds);
+                throw new DynamicDatasourceException("没找到数据源:[" + databaseId + "]");
             }
             return ds;
         }
@@ -90,8 +93,8 @@ public class SpringDynamicDatasourceTransaction implements Transaction {
     @Override
     public void commit() throws SQLException {
         if (this.connection != null && !this.isConnectionTransactional && !this.autoCommit) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Committing JDBC Connection [" + this.connection + "]");
+            if (logger.isTraceEnabled()) {
+                logger.trace("Committing JDBC Connection [" + this.connection + "]");
             }
             this.connection.commit();
         }
@@ -103,8 +106,8 @@ public class SpringDynamicDatasourceTransaction implements Transaction {
     @Override
     public void rollback() throws SQLException {
         if (this.connection != null && !this.isConnectionTransactional && !this.autoCommit) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Rolling back JDBC Connection [" + this.connection + "]");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Rolling back JDBC Connection [" + this.connection + "]");
             }
             this.connection.rollback();
         }

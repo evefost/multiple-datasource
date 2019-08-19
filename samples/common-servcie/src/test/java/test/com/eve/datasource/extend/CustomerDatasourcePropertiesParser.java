@@ -1,11 +1,12 @@
 package test.com.eve.datasource.extend;
 
-import com.eve.multiple.config.DataSourceBasePropertiesParser;
+
+import com.eve.multiple.properties.AbstractDataSourceBasePropertiesParser;
 
 /**
  * Created by xieyang on 19/7/25.
  */
-public class CustomerDatasourcePropertiesParser extends DataSourceBasePropertiesParser<CustomerProperties> {
+public class CustomerDatasourcePropertiesParser extends AbstractDataSourceBasePropertiesParser<CustomerProperties> {
 
 
     @Override

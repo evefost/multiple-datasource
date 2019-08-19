@@ -4,31 +4,37 @@ package com.eve.multiple;
  * 方法数据源mapping
  * <p>
  *
- * @author 谢洋
- * @version 1.0.0
+ * @author xieyang
  * @date 2019/7/26
  */
 public class DatabaseMeta {
+
+    private String methodName;
 
     /**
      * 数据源id
      */
     private String databaseId;
 
-    /**
-     * 是否为共享源
-     */
-    private boolean share = false;
+
+    private SourceType sourceType;
 
 
-    public boolean isShare() {
-        return share;
+    String getMethodName() {
+        return methodName;
     }
 
-    public void setShare(boolean share) {
-        this.share = share;
+    void setMethodName(String methodName) {
+        this.methodName = methodName;
     }
 
+    public SourceType getSourceType() {
+        return sourceType;
+    }
+
+    void setSourceType(SourceType sourceType) {
+        this.sourceType = sourceType;
+    }
 
     public String getDatabaseId() {
         return databaseId;
@@ -40,9 +46,10 @@ public class DatabaseMeta {
 
     @Override
     public String toString() {
-        return "DatabaseMeta{" +
-                "databaseId='" + databaseId + '\'' +
-                ", share=" + share +
+        return "Method bind Info{" +
+                methodName +
+                ",databaseId='" + databaseId + '\'' +
+                ", sourceType=" + sourceType +
                 '}';
     }
 }

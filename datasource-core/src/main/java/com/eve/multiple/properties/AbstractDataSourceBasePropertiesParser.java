@@ -1,6 +1,7 @@
 
-package com.eve.multiple.config;
+package com.eve.multiple.properties;
 
+import com.eve.multiple.PropertiesSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.EnvironmentAware;
@@ -11,23 +12,22 @@ import org.springframework.core.env.MutablePropertySources;
 
 import java.util.*;
 
+
 /**
+ * 固定格式，多主多从基础配置属性解释器
  * @author xieyang
  */
-public abstract class DataSourceBasePropertiesParser<DP extends DataSourceProperties> implements PropertiesParser, EnvironmentAware {
+public abstract class AbstractDataSourceBasePropertiesParser<DP extends BaseDataSourceProperties> implements PropertiesParser, EnvironmentAware {
 
     public final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final String ID = "id";
+    private static final String ID = "id";
 
-    private final String MASTER_PREFIX = "datasource.master";
+    private static final String MASTER_PREFIX = "datasource.master";
 
-    private final String SLAVER_PREFIX = "datasource.slaver";
+    private static final String SLAVER_PREFIX = "datasource.slaver";
 
-    private final String DEFAULT_DATABASE_ID = "datasource.default.ds-id";
-
-    private ConfigurableEnvironment environment;
-
+    private static final String DEFAULT_DATABASE_ID = "datasource.default.ds-id";
 
     /**
      * key:databaseId
@@ -38,10 +38,12 @@ public abstract class DataSourceBasePropertiesParser<DP extends DataSourceProper
 
     protected Map<String, String> properties;
 
-    public DataSourceBasePropertiesParser() {
+    private ConfigurableEnvironment environment;
+
+    public AbstractDataSourceBasePropertiesParser() {
     }
 
-    public DataSourceBasePropertiesParser(ConfigurableEnvironment environment) {
+    public AbstractDataSourceBasePropertiesParser(ConfigurableEnvironment environment) {
         this.environment = environment;
 
     }
@@ -55,14 +57,15 @@ public abstract class DataSourceBasePropertiesParser<DP extends DataSourceProper
     private Map<String, String> findProperties() {
         MutablePropertySources propertySources = environment.getPropertySources();
         List<EnumerablePropertySource> propertySourceList = new ArrayList<>();
-        propertySources.forEach((v) -> {
-            if (v instanceof EnumerablePropertySource) {
-                EnumerablePropertySource ps = (EnumerablePropertySource) v;
+        //(x)->x*
+        propertySources.forEach(propertySource -> {
+            if (propertySource instanceof EnumerablePropertySource) {
+                EnumerablePropertySource ps = (EnumerablePropertySource) propertySource;
                 propertySourceList.add(ps);
             }
         });
         Map<String, String> properties = new HashMap<>();
-        propertySourceList.forEach((ps) -> {
+        propertySourceList.forEach(ps -> {
             String[] propertyNames = ps.getPropertyNames();
             for (String propertyName : propertyNames) {
                 if (propertyName.startsWith(MASTER_PREFIX) || propertyName.startsWith(SLAVER_PREFIX) || propertyName.equals(DEFAULT_DATABASE_ID)) {
@@ -107,7 +110,11 @@ public abstract class DataSourceBasePropertiesParser<DP extends DataSourceProper
         slavers.forEach((k, v) -> {
             datasourceProperties.put(k, v);
         });
+        if (datasourceProperties == null || datasourceProperties.isEmpty()) {
+            return null;
+        }
         MultipleSourceProperties<DP> multipleSourceProperties = new MultipleSourceProperties();
+        multipleSourceProperties.setSource(PropertiesSource.DEFAULT);
         multipleSourceProperties.setDatasourceProperties(datasourceProperties);
         multipleSourceProperties.setDefaultDatabaseId(defaultDatabaseId);
         return multipleSourceProperties;
@@ -158,11 +165,16 @@ public abstract class DataSourceBasePropertiesParser<DP extends DataSourceProper
         }
     }
 
+    /**
+     * 获取实际使用的 继承的 BaseDataSourceProperties 的类型
+     *
+     * @return
+     */
     protected abstract Class<DP> getPropertiesClass();
 
 
     /**
-     * 自定义属性
+     * 用户可据实际情况，自定义属性
      * etc:
      * if (propertyKey.startsWith(propertyKeyPrefix) && propertyKey.endsWith("xxx")) {
      * dataSourceProperties.setUrl(propertyValue);

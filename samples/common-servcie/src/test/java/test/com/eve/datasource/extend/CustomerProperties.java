@@ -1,11 +1,11 @@
 package test.com.eve.datasource.extend;
 
-import com.eve.multiple.config.DataSourceProperties;
+import com.eve.multiple.properties.BaseDataSourceProperties;
 
 /**
  * Created by xieyang on 19/7/25.
  */
-public class CustomerProperties  extends DataSourceProperties {
+public class CustomerProperties  extends BaseDataSourceProperties {
 
     private String timeout;
 

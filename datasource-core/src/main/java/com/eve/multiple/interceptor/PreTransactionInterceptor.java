@@ -3,10 +3,8 @@
 package com.eve.multiple.interceptor;
 
 
-
 import com.eve.multiple.DatabaseMeta;
 import com.eve.multiple.RouteContextManager;
-import com.eve.multiple.config.DatasourceConfig;
 import org.aopalliance.intercept.MethodInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +12,15 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.TransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 
+import static com.eve.multiple.DatasourceManager.TRANSACTION_MANAGER_PREFIX;
+
+
 /**
+ * spring 事务拦截器
+ * <p>
  *
  * @author xieyang
+ * @date 2019/7/26
  */
 public class PreTransactionInterceptor extends TransactionInterceptor {
     public final Logger logger = LoggerFactory.getLogger(getClass());
@@ -26,18 +30,16 @@ public class PreTransactionInterceptor extends TransactionInterceptor {
 
         int increase = RouteContextManager.increase(true);
         if (increase == 1) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("enter transaction interceptor ");
+            if (logger.isTraceEnabled()) {
+                logger.trace("enter transaction interceptor ");
             }
         }
-        DatabaseMeta database = RouteContextManager.getDatabase(invocation.getMethod());
-        if(database == null){
-            database = RouteContextManager.getDefaultDatabase();
-        }
+        Class<?> targetClass = invocation.getThis().getClass();
+        DatabaseMeta database = RouteContextManager.getDatabase(targetClass, invocation.getMethod());
         boolean master = RouteContextManager.isMaster(database);
-        if(master){
+        if (master) {
             RouteContextManager.setCurrentDatabase(database, true);
-        }else {
+        } else {
             //自动切到主库
             DatabaseMeta masterDatabase = RouteContextManager.getMaster(database);
             RouteContextManager.setCurrentDatabase(masterDatabase, true);
@@ -51,17 +53,21 @@ public class PreTransactionInterceptor extends TransactionInterceptor {
         } finally {
             RouteContextManager.setCurrentDatabase(null, true);
             int decrease = RouteContextManager.decrease(true);
-            if (decrease == 0) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("out of interceptor ");
-                }
+            if (decrease == 0 && logger.isTraceEnabled()) {
+                logger.trace("out of interceptor ");
             }
         }
     }
 
+    /**
+     * @param txAttr txAttr
+     * @author xieyang
+     * @date 2019/7/26
+     * @return TransactionManager
+     */
     @Override
     protected PlatformTransactionManager determineTransactionManager(TransactionAttribute txAttr) {
-        String managerName = DatasourceConfig.TRANSACTION_MANAGER_PREFIX + RouteContextManager.currentDatabaseId();
+        String managerName = TRANSACTION_MANAGER_PREFIX + RouteContextManager.currentDatabaseId();
         Object bean = getBeanFactory().getBean(managerName);
         if (bean != null) {
             return (PlatformTransactionManager) bean;

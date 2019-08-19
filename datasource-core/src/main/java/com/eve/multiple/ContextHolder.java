@@ -5,13 +5,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * 执行链上下文 holder
  *
  * @author xieyang
  */
 public class ContextHolder {
 
 
-    private  ThreadLocal<InterceptorCounter> interceptorCounter = ThreadLocal.withInitial(() -> new InterceptorCounter());
+    private ThreadLocal<InterceptorCounter> interceptorCounter = ThreadLocal.withInitial(() -> new InterceptorCounter());
 
 
     private ThreadLocal<Map<Integer, DatabaseMeta>> currentDatabaseHolder = ThreadLocal.withInitial(() -> new HashMap<>());
@@ -27,23 +28,21 @@ public class ContextHolder {
     }
 
 
-
-    public  int increase() {
+    int increase() {
         return interceptorCounter.get().increase();
     }
 
-    public  int decrease() {
+    int decrease() {
         return interceptorCounter.get().decrease();
     }
 
 
-
-    public DatabaseMeta currentDatabase() {
+    DatabaseMeta currentDatabase() {
         InterceptorCounter transactionCounter = interceptorCounter.get();
         return currentDatabaseHolder.get().get(transactionCounter.value());
     }
 
-    public  int counterValue() {
+    int counterValue() {
         return interceptorCounter.get().value();
     }
 

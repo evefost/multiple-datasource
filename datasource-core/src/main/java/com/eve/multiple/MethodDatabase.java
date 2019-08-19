@@ -6,8 +6,7 @@ import java.lang.reflect.Method;
  * 方法数据源mapping
  * <p>
  *
- * @author 谢洋
- * @version 1.0.0
+ * @author xieyang
  * @date 2019/7/26
  */
 public class MethodDatabase {
