@@ -57,14 +57,14 @@ public class ServiceInterceptor implements InvocationHandler {
             logger.trace("enter service {} >>>>>>>>>>>> ", method.getDeclaringClass());
         }
         DatabaseMeta database = RouteContextManager.getDatabase(targetClass, method);
-        if (logger.isDebugEnabled()) {
-            logger.debug("{}", database);
+        if (logger.isTraceEnabled()) {
+            logger.trace("{}", database);
         }
         RouteContextManager.setCurrentDatabase(database, false);
         try {
             return method.invoke(target, args);
         } catch (Exception throwable) {
-            throw findBusinessException(throwable);
+            throw findRootCause(throwable);
         } finally {
             RouteContextManager.setCurrentDatabase(null, false);
             int decrease = RouteContextManager.decrease(false);
@@ -77,12 +77,12 @@ public class ServiceInterceptor implements InvocationHandler {
         }
     }
 
-    private Throwable findBusinessException(Throwable throwable) {
+    private Throwable findRootCause(Throwable throwable) {
         Throwable cause = throwable.getCause();
         if (cause == null) {
             return throwable;
         }
-        return findBusinessException(cause);
+        return findRootCause(cause);
     }
 
     @Override

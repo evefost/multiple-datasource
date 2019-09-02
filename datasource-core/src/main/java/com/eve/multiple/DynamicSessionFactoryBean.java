@@ -2,7 +2,7 @@
 package com.eve.multiple;
 
 import com.eve.multiple.event.StatementBuildFinishEvent;
-import com.eve.multiple.interceptor.ExecutorInterceptor;
+import com.eve.multiple.interceptor.DataSourceRouteInterceptor;
 import org.apache.ibatis.builder.xml.XMLConfigBuilder;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.cache.Cache;
@@ -364,7 +364,7 @@ public class DynamicSessionFactoryBean extends SqlSessionFactoryBean implements 
         state((configuration == null && configLocation == null) || !(configuration != null && configLocation != null),
                 "Property 'configuration' and 'configLocation' can not specified with together");
         this.sqlSessionFactory = buildSqlSessionFactory();
-        configuration.addInterceptor(new ExecutorInterceptor());
+        configuration.addInterceptor(new DataSourceRouteInterceptor());
         applicationContext.publishEvent(new StatementBuildFinishEvent(configuration));
     }
 

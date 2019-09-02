@@ -43,8 +43,8 @@ public class PreTransactionInterceptor extends TransactionInterceptor {
             //自动切到主库
             DatabaseMeta masterDatabase = RouteContextManager.getMaster(database);
             RouteContextManager.setCurrentDatabase(masterDatabase, true);
-            if (logger.isDebugEnabled()) {
-                logger.debug("slaver[{}] switch to master[{}](has transaction)", database, masterDatabase);
+            if (logger.isTraceEnabled()) {
+                logger.trace("slaver[{}] switch to master[{}](has transaction)", database, masterDatabase);
             }
         }
 

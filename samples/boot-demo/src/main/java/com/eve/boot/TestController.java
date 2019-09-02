@@ -1,6 +1,7 @@
 package com.eve.boot;
 
 
+import com.eve.common.dao.AMapper;
 import com.eve.common.entity.User;
 import com.eve.common.service.AService;
 import com.xxx.starter.DatasourceProperties;
@@ -42,6 +43,13 @@ public class TestController implements ApplicationContextAware{
   @ResponseBody
   public User getUser(String name) throws Exception {
     return aService.queryById(7);
+  }
+  @Autowired
+  private AMapper aMapper;
+  @GetMapping("getUser2")
+  @ResponseBody
+  public User getUser2(String name) throws Exception {
+    return aMapper.queryById(7);
   }
 
   @Override

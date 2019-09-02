@@ -2,7 +2,6 @@ package com.eve.common.service;
 
 
 import com.eve.common.entity.User;
-import com.eve.multiple.annotation.Database;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -10,7 +9,7 @@ import java.util.List;
 /**
  * Created by Administrator on 2018/3/2.
  */
-@Database("ds7")
+
 
 public interface AService {
 

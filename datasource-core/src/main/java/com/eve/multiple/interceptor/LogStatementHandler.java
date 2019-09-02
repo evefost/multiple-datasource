@@ -2,11 +2,15 @@
 
 package com.eve.multiple.interceptor;
 
+import com.eve.multiple.DatabaseMeta;
 import com.eve.multiple.RouteContextManager;
+import com.eve.multiple.SourceType;
 import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.executor.parameter.ParameterHandler;
 import org.apache.ibatis.executor.statement.StatementHandler;
+import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.mapping.BoundSql;
+import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.session.ResultHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,25 +27,36 @@ import java.util.List;
  * @author xieyang
  * @date 2019/7/26
  */
-public class DynamicRoutingStatementHandler implements StatementHandler {
+public class LogStatementHandler implements StatementHandler {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private StatementHandler delegate;
 
-    public DynamicRoutingStatementHandler(StatementHandler delegate) {
+    public LogStatementHandler(StatementHandler delegate) {
         this.delegate = delegate;
     }
 
 
     @Override
     public Statement prepare(Connection connection, Integer transactionTimeout) throws SQLException {
-
-        String currentDatabaseId = RouteContextManager.currentDatabaseId();
-        String url = connection.getMetaData().getURL();
         if (logger.isDebugEnabled()) {
-            logger.debug("[{}] actually use :[{}][{}]", RouteContextManager.getMapStatement().getId(), currentDatabaseId, url);
+            showLog(connection);
         }
         return delegate.prepare(connection, transactionTimeout);
+    }
+
+    private void showLog(Connection connection) throws SQLException {
+        MappedStatement ms = RouteContextManager.getMapStatement();
+        Log statementLog = ms.getStatementLog();
+        DatabaseMeta databaseMeta = RouteContextManager.currentDatabase();
+        SourceType sourceType = databaseMeta.getSourceType();
+        String currentDatabaseId = RouteContextManager.currentDatabaseId();
+        String url = connection.getMetaData().getURL();
+
+        statementLog.debug("\nactually use :["+currentDatabaseId+"]["+url+"]");
+        if(SourceType.TENANT.equals(sourceType)||SourceType.TENANT_DEFAULT.equals(sourceType)){
+            statementLog.debug("==> Select Tenant["+RouteContextManager.getCurrentTenant()+"]");
+        }
     }
 
     @Override

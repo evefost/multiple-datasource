@@ -1,6 +1,7 @@
 package com.eve.boot.config;
 
 
+import com.eve.boot.config.tenant.TenantDatasourcePropertiesLoader;
 import com.eve.multiple.DataSourceResolver;
 import com.eve.multiple.annotation.DatabaseProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -43,6 +44,10 @@ public class SimpleConfig {
     }
 
 
+    @Bean
+    TenantDatasourcePropertiesLoader tenantDatasourcePropertiesLoader(){
+       return new TenantDatasourcePropertiesLoader();
+    }
 
 
 }

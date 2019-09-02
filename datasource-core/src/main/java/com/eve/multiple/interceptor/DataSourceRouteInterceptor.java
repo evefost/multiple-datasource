@@ -43,7 +43,7 @@ import java.util.Properties;
                 method = "query",
                 args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class}
         )})
-public class ExecutorInterceptor implements Interceptor {
+public class DataSourceRouteInterceptor implements Interceptor {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -51,7 +51,7 @@ public class ExecutorInterceptor implements Interceptor {
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
         MappedStatement ms = (MappedStatement) invocation.getArgs()[0];
-        calculateDatasource(ms);
+        determineTargetDataSource(ms);
         RouteContextManager.setMapStatement(ms);
         try {
             return invocation.proceed();
@@ -69,15 +69,15 @@ public class ExecutorInterceptor implements Interceptor {
      * 处理数据源由路
      * @param ms mapperStatement
      */
-    private void calculateDatasource(MappedStatement ms) {
+    private void determineTargetDataSource(MappedStatement ms) {
         DatabaseMeta database = RouteContextManager.currentDatabase();
         DatabaseMeta msBindDb = RouteContextManager.getStatementDatabaseMeta(ms.getId());
         DatabaseMeta currentDatabase = database;
         if (msBindDb != null) {
             currentDatabase = msBindDb;
         }
-        if (logger.isDebugEnabled()) {
-            logger.debug("mapper[{}]  database [{}]", ms.getId(), msBindDb);
+        if (logger.isTraceEnabled()) {
+            logger.trace("mapper[{}]  database [{}]", ms.getId(), msBindDb);
         }
         DatabaseMeta master;
         if (RouteContextManager.isMaster(currentDatabase)) {
@@ -99,8 +99,8 @@ public class ExecutorInterceptor implements Interceptor {
             } else {
                 RouteContextManager.setCurrentDatabase(master, false);
                 if (isSelect) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("no transaction query，but had update before,so switch to master[{}]", master);
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("no transaction query，but had update before,so switch to master[{}]", master);
                     }
                     tip = "no transaction,but had update before";
                 } else {
@@ -113,15 +113,15 @@ public class ExecutorInterceptor implements Interceptor {
             RouteContextManager.markUpdateOperateFlag();
         }
 
-        if (logger.isDebugEnabled()) {
-            logger.info("[{}] should connect to [{}][{}]({})", ms.getSqlCommandType(), isMaster ? "master" : "slaver", RouteContextManager.currentDatabase(), tip);
+        if (logger.isTraceEnabled()) {
+            logger.trace("[{}] should connect to [{}][{}]({})", ms.getSqlCommandType(), isMaster ? "master" : "slaver", RouteContextManager.currentDatabase(), tip);
         }
     }
 
     @Override
     public Object plugin(Object target) {
         if (target instanceof RoutingStatementHandler) {
-            target = new DynamicRoutingStatementHandler((RoutingStatementHandler) target);
+            target = new LogStatementHandler((RoutingStatementHandler) target);
         }
         return Plugin.wrap(target, this);
     }
