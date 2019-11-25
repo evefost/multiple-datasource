@@ -38,8 +38,8 @@ public class AServiceImpl implements AService {
      * @param user
      */
     @Override
-    public void save(User user) {
-        aMapper.insertUser(user);
+    public Integer save(User user) {
+       return aMapper.insertUser(user);
     }
 
     @Override

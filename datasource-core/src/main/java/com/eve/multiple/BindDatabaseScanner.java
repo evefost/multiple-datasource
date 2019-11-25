@@ -208,7 +208,7 @@ public class BindDatabaseScanner {
             }
         } else {
             if (SHARE_DEFAULT.equals(type) || TENANT_DEFAULT.equals(type)) {
-                throw new DynamicDatasourceException("SHARE_DEFAULT 或 SHARE_DEFAULT 类型数据源 databaseId必须为空值[" + location + "]");
+                throw new DynamicDatasourceException("SHARE_DEFAULT 或 TENANT_DEFAULT 类型数据源 databaseId必须为空值[" + location + "]");
             }
         }
     }

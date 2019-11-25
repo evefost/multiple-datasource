@@ -18,8 +18,7 @@ public interface AService {
 
   User queryByIdWithTransaction(Integer id);
 
-//  @Transactional
-  void save(User user);
+  Integer save(User user);
 
   void saveWithTransaction(User user);
 

@@ -3,7 +3,7 @@ package com.eve.multiple;
 
 import org.apache.ibatis.session.TransactionIsolationLevel;
 import org.apache.ibatis.transaction.Transaction;
-import org.apache.ibatis.transaction.TransactionFactory;
+import org.mybatis.spring.transaction.SpringManagedTransactionFactory;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -14,7 +14,7 @@ import java.util.Properties;
  * 替换默认的
  * @author xieyang
  */
-public class DynamicDatasourceTransactionFactory implements TransactionFactory {
+public class DynamicDatasourceTransactionFactory extends SpringManagedTransactionFactory {
 
     /**
      * {@inheritDoc}
