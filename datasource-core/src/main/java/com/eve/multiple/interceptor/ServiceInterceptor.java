@@ -42,6 +42,10 @@ public class ServiceInterceptor implements InvocationHandler {
         this.targetClass = targetMapper.getTargetClass();
     }
 
+    public Class<?> getTargetClass() {
+        return targetClass;
+    }
+
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         if (METHOD_EQUALS.equals(method.getName())) {

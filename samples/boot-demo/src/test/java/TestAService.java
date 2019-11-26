@@ -3,7 +3,7 @@ import com.eve.common.service.AService;
 import com.eve.multiple.DatabaseMeta;
 import com.eve.multiple.DatasourceManager;
 import com.eve.multiple.RouteContextManager;
-import com.eve.multiple.SourceType;
+import com.eve.multiple.interceptor.ServiceInterceptor;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -13,6 +13,9 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -94,10 +97,10 @@ public class TestAService extends TestBaseService {
         public void run() {
 
             RouteContextManager.setCurrentTenant(tenantId);
-            DatabaseMeta database = new DatabaseMeta();
-            database.setDatabaseId("ds0");
-            database.setSourceType(SourceType.TENANT);
-            RouteContextManager.setCurrentDatabase(database,false);
+            boolean andSetDatabase = findAndSetDatabase();
+            if(!andSetDatabase){
+              throw new RuntimeException("找不到database meta");
+            }
             DataSourceTransactionManager transactionManager = datasourceManager.getTransactionManager();
             TransactionStatus transactionStatus = beginTransaction(transactionManager);
             String name = System.nanoTime() + "_" + index;
@@ -126,6 +129,23 @@ public class TestAService extends TestBaseService {
             def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW); // 事物隔离级别，开启新事务，这样会比较安全些。
             TransactionStatus transaction = transactionManager.getTransaction(def);
             return transaction;
+        }
+
+        private boolean findAndSetDatabase(){
+            InvocationHandler invocationHandler = Proxy.getInvocationHandler(aService);
+            if(invocationHandler instanceof ServiceInterceptor){
+                ServiceInterceptor serviceInterceptor = (ServiceInterceptor) invocationHandler;
+                Class<?> targetClass = serviceInterceptor.getTargetClass();
+                try {
+                    Method method = targetClass.getMethod("save", User.class);
+                    DatabaseMeta database = RouteContextManager.getDatabase(targetClass, method);
+                    RouteContextManager.setCurrentDatabase(database, false);
+                    return true;
+                } catch (NoSuchMethodException e) {
+                    e.printStackTrace();
+                }
+            }
+            return false;
         }
     }
 
