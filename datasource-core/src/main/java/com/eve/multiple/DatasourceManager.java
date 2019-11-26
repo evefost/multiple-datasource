@@ -238,6 +238,15 @@ public class DatasourceManager implements ApplicationListener<ApplicationEvent>,
 
     }
 
+    public DataSourceTransactionManager getTransactionManager(){
+        String databaseId = RouteContextManager.currentDatabaseId();
+        String transactionManagerName = TRANSACTION_MANAGER_PREFIX + databaseId;
+        BeanFactory beanFactory = (BeanFactory) registry;
+       return beanFactory.getBean(transactionManagerName,DataSourceTransactionManager.class);
+    }
+
+
+
 
     @Override
     public void afterPropertiesSet() throws Exception {

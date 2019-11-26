@@ -29,27 +29,20 @@ public class TenantDatasourcePropertiesLoader implements DatasourcePropertiesLoa
     }
 
     private CompositeMultipleSourceProperties<HikariProperties> mockData() {
+
         CompositeMultipleSourceProperties<HikariProperties> compositeMultipleSourceProperties = new CompositeMultipleSourceProperties<HikariProperties>();
         HikariProperties properties1 = new HikariProperties();
         properties1.setUrl("jdbc:mysql://localhost:3306/ds0?useUnicode=true&characterEncoding=utf-8&useSSL=false");
         properties1.setPassword("root");
         properties1.setUsername("root");
         properties1.setTenantId("1");
-        properties1.setId("ds4");
+        properties1.setId("ds0");
         properties1.setDefault(true);
 
-        HikariProperties properties3 = new HikariProperties();
-        properties3.setUrl("jdbc:mysql://localhost:3306/ds1?useUnicode=true&characterEncoding=utf-8&useSSL=false");
-        properties3.setPassword("root");
-        properties3.setUsername("root");
-        properties3.setTenantId("1");
-        properties3.setId("ds5");
-        properties3.setDefault(false);
-        properties1.addSlaver(properties3);
+
 
         Map<String, HikariProperties> tenantMap = new HashMap<String, HikariProperties>();
         tenantMap.put(properties1.getId(), properties1);
-        tenantMap.put(properties3.getId(), properties3);
         MultipleSourceProperties<HikariProperties> multipleSourceProperties = new MultipleSourceProperties();
         multipleSourceProperties.setSource(properties1.getTenantId());
         multipleSourceProperties.setDefaultDatabaseId(properties1.getId());
@@ -61,7 +54,7 @@ public class TenantDatasourcePropertiesLoader implements DatasourcePropertiesLoa
         properties2.setPassword("root");
         properties2.setUsername("root");
         properties2.setTenantId("2");
-        properties2.setId("ds4");
+        properties2.setId("ds0");
 
 
         Map<String, HikariProperties> tenantMap2 = new HashMap<String, HikariProperties>();

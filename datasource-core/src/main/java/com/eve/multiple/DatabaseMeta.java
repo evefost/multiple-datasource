@@ -32,7 +32,7 @@ public class DatabaseMeta {
         return sourceType;
     }
 
-    void setSourceType(SourceType sourceType) {
+    public void setSourceType(SourceType sourceType) {
         this.sourceType = sourceType;
     }
 

@@ -7,6 +7,8 @@ import com.eve.common.entity.User;
 import com.eve.common.service.AService;
 import com.eve.common.service.BService;
 import com.eve.common.service.CService;
+import com.eve.multiple.SourceType;
+import com.eve.multiple.annotation.Database;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +19,7 @@ import java.util.List;
 /**
  * Created by Administrator on 2018/3/2.
  */
-//@Database("ds0")
+@Database(value = "ds0",type = SourceType.TENANT)
 @Service
 public class AServiceImpl implements AService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -109,5 +111,10 @@ public class AServiceImpl implements AService {
         bMapper.insertUser(user);
         aMapper.queryById(2);
         bMapper.queryById(2);
+    }
+
+    @Override
+    public User queryByName(String name) {
+        return aMapper.queryByName(name);
     }
 }

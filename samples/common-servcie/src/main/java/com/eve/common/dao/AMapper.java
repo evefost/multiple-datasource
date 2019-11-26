@@ -10,10 +10,12 @@ import java.util.List;
 /**
  * Created by xieyang on 18/3/3.
  */
-@Database(value = "ds0",type = SourceType.SHARE)
+@Database(value = "ds0",type = SourceType.TENANT)
 public interface AMapper {
 
     Integer insertUser(User user);
+
+    User queryByName(String name);
 
     User getUser(Integer id);
 

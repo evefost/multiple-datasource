@@ -40,4 +40,7 @@ public interface AService {
 
 //    @Transactional
   void mutipleOperate2();
+
+
+  User queryByName(String name);
 }
