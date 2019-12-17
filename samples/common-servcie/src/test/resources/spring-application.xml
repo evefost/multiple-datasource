@@ -26,7 +26,7 @@
 
   </bean>
   <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-    <property name="basePackage" value="com.eve.common.dao"/>
+    <property name="basePackage" value="com.eve.com.eve.boot.common.dao"/>
   </bean>
 
 </beans>

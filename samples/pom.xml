@@ -16,6 +16,7 @@
         <module>boot-demo</module>
         <module>common-servcie</module>
         <module>datasource-boot-starter</module>
+        <module>rabbit-mq</module>
     </modules>
 
 

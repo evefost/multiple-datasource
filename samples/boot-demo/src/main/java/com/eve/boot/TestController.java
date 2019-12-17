@@ -1,53 +1,63 @@
 package com.eve.boot;
 
 
-import com.eve.common.dao.AMapper;
+import com.eve.boot.jedis.RedisUtils;
 import com.eve.common.entity.User;
 import com.eve.common.service.AService;
-import com.xxx.starter.DatasourceProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 
-@Controller
+@RestController
 public class TestController implements ApplicationContextAware{
 
   public  final Logger logger = LoggerFactory.getLogger(getClass());
 
 
-
   ApplicationContext applicationContext;
-
-  @Autowired
-  private Environment environment;
 
   @Autowired
   private AService aService;
 
   @Autowired
-  private DatasourceProperties datasourceProperties;
+  private RedisUtils redisUtils;
 
 
-  @GetMapping("getUser")
+  @GetMapping("getById")
   @ResponseBody
-  public User getUser(String name) throws Exception {
-    return aService.queryById(7);
+  public User getUser(Integer id) throws Exception {
+    return aService.queryById(id);
   }
-  @Autowired
-  private AMapper aMapper;
-  @GetMapping("getUser2")
+
+  @GetMapping("add")
   @ResponseBody
-  public User getUser2(String name) throws Exception {
-    return aMapper.queryById(7);
+  public Integer getUser2(String name, int age) throws Exception {
+    User user = new User();
+    user.setName(name);
+    user.setAge(age);
+    return aService.save(user);
   }
+
+  @GetMapping("redisSave")
+  @ResponseBody
+  public String getUser2(String key, String value) throws Exception {
+    redisUtils.set(key, value);
+    return redisUtils.get(key, String.class);
+  }
+
+  @GetMapping("redisGet")
+  @ResponseBody
+  public String getUser2(String key) throws Exception {
+    return redisUtils.get(key, String.class);
+  }
+
 
   @Override
   public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
